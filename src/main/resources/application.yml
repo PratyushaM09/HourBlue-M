@@ -3,6 +3,16 @@ spring:
     name: HourBlue
   profiles:
     default: dev
+  datasource:
+    url: jdbc:mysql://${DB_HOST:127.0.0.1}:${DB_PORT:3306}/${DB_NAME:hourblue}
+    username: ${DB_USERNAME:hourblue_app}
+    password: ${DB_PASSWORD}
+  flyway:
+    enabled: true
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
 
 hourblue:
   time-zone: ${APP_TIME_ZONE:UTC}
