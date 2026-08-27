@@ -1,3 +1,8 @@
 spring:
   application:
     name: HourBlue
+  profiles:
+    default: dev
+
+hourblue:
+  time-zone: ${APP_TIME_ZONE:UTC}
