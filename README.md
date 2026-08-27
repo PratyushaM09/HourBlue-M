@@ -17,7 +17,7 @@ Milestone 1 is complete: the project foundation, base configuration, application
 - Default Spring profile: `dev`
 - Application timezone configured from `APP_TIME_ZONE`, defaulting to `UTC`
 
-## Planned MVP Stack
+
 
 ## Planned MVP Stack
 
@@ -88,8 +88,6 @@ src/test/java/com/hourblue/       Spring Boot tests
 pom.xml                           Maven project configuration
 mvnw, mvnw.cmd                    Maven Wrapper scripts
 ```
-
-## Next Step
 
 ## Next Step
 
