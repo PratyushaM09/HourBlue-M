@@ -4,7 +4,7 @@ HourBlue is a visual-discovery website being built as a server-rendered Spring B
 
 ## Status
 
-Milestone 1 is complete. Milestone 2C adds the first content schema migration and initial JPA entities; repositories are not implemented yet.
+Milestone 1 is complete. Milestone 2 is complete with content persistence, entities, repositories, and repository integration tests.
 
 ## Implemented
 
@@ -19,6 +19,7 @@ Milestone 1 is complete. Milestone 2C adds the first content schema migration an
 - Flyway
 - V1 content schema migration
 - `Category`, `Post`, and `PostStatus`
+- `CategoryRepository` and `PostRepository`
 - Default Spring profile: `dev`
 - Application timezone configured from `APP_TIME_ZONE`, defaulting to `UTC`
 - MySQL datasource configuration for development and test profiles
@@ -32,13 +33,12 @@ The following technologies and architectural components are planned for the MVP 
 - Spring Security with admin sessions
 - Cloudinary
 - Modular monolith architecture
-- Repositories
 
 ## Prerequisites
 
 - JDK 21
 - No global Maven installation is required; use the included Maven Wrapper.
-- Local MySQL databases for persistence verification: `hourblue` and `hourblue_test`.
+- Local MySQL databases for persistence and repository verification: `hourblue` and `hourblue_test`.
 
 ## Commands
 
@@ -101,8 +101,8 @@ Sensitive actuator endpoints such as `/actuator/env` are not exposed.
 
 ```text
 src/main/java/com/hourblue/       Spring Boot application and configuration
-src/main/java/com/hourblue/category/ Category entity
-src/main/java/com/hourblue/post/  Post entity and status enum
+src/main/java/com/hourblue/category/ Category entity and repository
+src/main/java/com/hourblue/post/  Post entity, status enum, and repository
 src/main/resources/application*.yml Base and test-profile configuration
 src/main/resources/db/migration/  Flyway migrations
 src/test/java/com/hourblue/       Spring Boot tests
@@ -112,4 +112,4 @@ mvnw, mvnw.cmd                    Maven Wrapper scripts
 
 ## Next Step
 
-Milestone 2D will add Spring Data repositories.
+Next milestone: admin authentication and security.

@@ -83,6 +83,67 @@ public class Post {
         this.altText = Objects.requireNonNull(altText);
     }
 
+    public Long getId() {
+        return id;
+    }
+
+    public Category getCategory() {
+        return category;
+    }
+
+    public String getSlug() {
+        return slug;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public String getCloudinaryPublicId() {
+        return cloudinaryPublicId;
+    }
+
+    public String getAltText() {
+        return altText;
+    }
+
+    public String getSourceUrl() {
+        return sourceUrl;
+    }
+
+    public PostStatus getStatus() {
+        return status;
+    }
+
+    public Instant getPublishedAt() {
+        return publishedAt;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void publish(Instant publishedAt) {
+        this.publishedAt = Objects.requireNonNull(publishedAt);
+        status = PostStatus.PUBLISHED;
+    }
+
+    public void archive() {
+        status = PostStatus.ARCHIVED;
+    }
+
     @PrePersist
     void setCreatedTimestamps() {
         Instant now = Instant.now();
