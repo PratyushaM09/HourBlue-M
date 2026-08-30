@@ -4,7 +4,7 @@ HourBlue is a visual-discovery website being built as a server-rendered Spring B
 
 ## Status
 
-Milestone 1 is complete. Milestone 2 is complete with content persistence, entities, repositories, and repository integration tests.
+Milestone 1 is complete. Milestone 2 is complete. Milestone 3B adds admin persistence only; authentication and security are not implemented yet.
 
 ## Implemented
 
@@ -18,8 +18,10 @@ Milestone 1 is complete. Milestone 2 is complete with content persistence, entit
 - MySQL Connector/J
 - Flyway
 - V1 content schema migration
+- V2 admin schema migration
 - `Category`, `Post`, and `PostStatus`
 - `CategoryRepository` and `PostRepository`
+- `Admin` and `AdminRepository`
 - Default Spring profile: `dev`
 - Application timezone configured from `APP_TIME_ZONE`, defaulting to `UTC`
 - MySQL datasource configuration for development and test profiles
@@ -31,6 +33,7 @@ The following technologies and architectural components are planned for the MVP 
 - Thymeleaf with server-side rendering
 - Tailwind CLI
 - Spring Security with admin sessions
+- Secure initial-admin bootstrap
 - Cloudinary
 - Modular monolith architecture
 
@@ -101,6 +104,7 @@ Sensitive actuator endpoints such as `/actuator/env` are not exposed.
 
 ```text
 src/main/java/com/hourblue/       Spring Boot application and configuration
+src/main/java/com/hourblue/admin/ Admin entity and repository
 src/main/java/com/hourblue/category/ Category entity and repository
 src/main/java/com/hourblue/post/  Post entity, status enum, and repository
 src/main/resources/application*.yml Base and test-profile configuration
@@ -112,4 +116,4 @@ mvnw, mvnw.cmd                    Maven Wrapper scripts
 
 ## Next Step
 
-Next milestone: admin authentication and security.
+Next milestone: Spring Security configuration and secure initial-admin bootstrap.
