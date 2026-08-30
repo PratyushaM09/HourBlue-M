@@ -8,6 +8,11 @@ import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Map;
 
+import com.hourblue.category.Category;
+import com.hourblue.post.Post;
+
+import jakarta.persistence.EntityManagerFactory;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -33,6 +38,9 @@ class HourBlueApplicationTests {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    private EntityManagerFactory entityManagerFactory;
 
     @Test
     void healthIsUp() {
@@ -65,5 +73,30 @@ class HourBlueApplicationTests {
     @Test
     void connectsToTestDatabase() {
         assertEquals(1, jdbcTemplate.queryForObject("SELECT 1", Integer.class));
+    }
+
+    @Test
+    void flywayV1CreatedContentTables() {
+        assertEquals(
+                1,
+                jdbcTemplate.queryForObject(
+                        "select count(*) from flyway_schema_history where version = '1' and success = 1",
+                        Integer.class));
+        assertEquals(
+                1,
+                jdbcTemplate.queryForObject(
+                        "select count(*) from information_schema.tables where table_schema = database() and table_name = 'categories'",
+                        Integer.class));
+        assertEquals(
+                1,
+                jdbcTemplate.queryForObject(
+                        "select count(*) from information_schema.tables where table_schema = database() and table_name = 'posts'",
+                        Integer.class));
+    }
+
+    @Test
+    void jpaMetamodelIncludesContentEntities() {
+        assertNotNull(entityManagerFactory.getMetamodel().entity(Category.class));
+        assertNotNull(entityManagerFactory.getMetamodel().entity(Post.class));
     }
 }

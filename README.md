@@ -4,7 +4,7 @@ HourBlue is a visual-discovery website being built as a server-rendered Spring B
 
 ## Status
 
-Milestone 1 is complete. Milestone 2B adds persistence infrastructure and local MySQL connectivity verification; domain entities, migrations, and repositories are not implemented yet.
+Milestone 1 is complete. Milestone 2C adds the first content schema migration and initial JPA entities; repositories are not implemented yet.
 
 ## Implemented
 
@@ -17,6 +17,8 @@ Milestone 1 is complete. Milestone 2B adds persistence infrastructure and local 
 - Spring Data JPA
 - MySQL Connector/J
 - Flyway
+- V1 content schema migration
+- `Category`, `Post`, and `PostStatus`
 - Default Spring profile: `dev`
 - Application timezone configured from `APP_TIME_ZONE`, defaulting to `UTC`
 - MySQL datasource configuration for development and test profiles
@@ -30,7 +32,7 @@ The following technologies and architectural components are planned for the MVP 
 - Spring Security with admin sessions
 - Cloudinary
 - Modular monolith architecture
-- Domain entities, database migrations, and repositories
+- Repositories
 
 ## Prerequisites
 
@@ -99,7 +101,10 @@ Sensitive actuator endpoints such as `/actuator/env` are not exposed.
 
 ```text
 src/main/java/com/hourblue/       Spring Boot application and configuration
+src/main/java/com/hourblue/category/ Category entity
+src/main/java/com/hourblue/post/  Post entity and status enum
 src/main/resources/application*.yml Base and test-profile configuration
+src/main/resources/db/migration/  Flyway migrations
 src/test/java/com/hourblue/       Spring Boot tests
 pom.xml                           Maven project configuration
 mvnw, mvnw.cmd                    Maven Wrapper scripts
@@ -107,4 +112,4 @@ mvnw, mvnw.cmd                    Maven Wrapper scripts
 
 ## Next Step
 
-Milestone 2C will introduce the first Flyway migration and JPA entities.
+Milestone 2D will add Spring Data repositories.
