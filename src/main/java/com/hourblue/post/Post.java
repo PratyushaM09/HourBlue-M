@@ -75,12 +75,26 @@ public class Post {
             String description,
             String imageUrl,
             String altText) {
+        this(category, slug, title, description, imageUrl, null, altText, null);
+    }
+
+    public Post(
+            Category category,
+            String slug,
+            String title,
+            String description,
+            String imageUrl,
+            String cloudinaryPublicId,
+            String altText,
+            String sourceUrl) {
         this.category = Objects.requireNonNull(category);
         this.slug = Objects.requireNonNull(slug);
         this.title = Objects.requireNonNull(title);
         this.description = Objects.requireNonNull(description);
         this.imageUrl = Objects.requireNonNull(imageUrl);
+        this.cloudinaryPublicId = cloudinaryPublicId;
         this.altText = Objects.requireNonNull(altText);
+        this.sourceUrl = sourceUrl;
     }
 
     public Long getId() {
@@ -136,12 +150,39 @@ public class Post {
     }
 
     public void publish(Instant publishedAt) {
-        this.publishedAt = Objects.requireNonNull(publishedAt);
+        if (status != PostStatus.DRAFT) {
+            throw new IllegalStateException("Only draft posts can be published.");
+        }
+        this.publishedAt = Objects.requireNonNull(publishedAt, "Publication timestamp is required.");
         status = PostStatus.PUBLISHED;
     }
 
     public void archive() {
+        if (status == PostStatus.ARCHIVED) {
+            return;
+        }
         status = PostStatus.ARCHIVED;
+    }
+
+    public void updateMetadata(
+            Category category,
+            String title,
+            String slug,
+            String description,
+            String altText,
+            String sourceUrl) {
+        if (category == null || title == null || slug == null || description == null || altText == null) {
+            throw new IllegalArgumentException("Post metadata values are required.");
+        }
+        if (!this.slug.equals(slug) && status != PostStatus.DRAFT) {
+            throw new IllegalStateException("Only draft posts can change slug.");
+        }
+        this.category = category;
+        this.title = title;
+        this.slug = slug;
+        this.description = description;
+        this.altText = altText;
+        this.sourceUrl = sourceUrl;
     }
 
     @PrePersist

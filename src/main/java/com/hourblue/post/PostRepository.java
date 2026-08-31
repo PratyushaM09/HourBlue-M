@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
 
+    Optional<Post> findBySlug(String slug);
+
     Optional<Post> findBySlugAndStatus(String slug, PostStatus status);
 
     Page<Post> findAllByStatusOrderByPublishedAtDesc(PostStatus status, Pageable pageable);

@@ -133,6 +133,8 @@ pom.xml                           Maven project configuration
 mvnw, mvnw.cmd                    Maven Wrapper scripts
 ```
 
-## Next Step
+## Milestone 4C
 
-Next milestone: admin media-management workflow.
+The admin post workflow is implemented at the service layer without UI controllers or templates yet. Draft creation validates imported post data, verifies the category, uploads to Cloudinary, and compensates by deleting the uploaded asset if persistence fails. Metadata editing preserves image fields and publication timestamp while enforcing slug rules. Publishing and archival statuses are enforced in the Post domain model and response-safe application exceptions distinguish invalid form data, missing category/post records, duplicate slugs, and storage problems.
+
+The next step is category and post admin pages for the management interface.
