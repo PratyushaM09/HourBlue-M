@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" th:content="${metaDescription}" content="">
+    <title th:text="|${post.title} - HourBlue|">HourBlue</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}" href="/css/site.css">
+</head>
+<body>
+    <main class="site-shell detail">
+        <a class="back-link" th:href="@{/}" href="/">Back to HourBlue</a>
+
+        <article class="post-detail">
+            <header>
+                <p class="brand">HourBlue</p>
+                <p class="category" th:text="${post.category.name}"></p>
+                <h1 th:text="${post.title}"></h1>
+                <time th:if="${post.publishedAt}" th:datetime="${post.publishedAt}" th:text="${post.publishedAt}"></time>
+            </header>
+
+            <img th:src="${post.imageUrl}" th:alt="${post.altText}">
+            <p th:text="${post.description}"></p>
+            <p th:if="${sourceUrlSafe}">
+                <a th:href="${post.sourceUrl}" target="_blank" rel="noopener noreferrer">Source</a>
+            </p>
+        </article>
+    </main>
+</body>
+</html>

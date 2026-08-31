@@ -4,7 +4,7 @@ HourBlue is a visual-discovery website being built as a server-rendered Spring B
 
 ## Status
 
-Milestone 1 is complete. Milestone 2 is complete. Milestone 3D adds a custom admin login page and protected admin landing page. Milestone 4B adds Cloudinary configuration and image-storage foundation.
+Milestones 1 through 5 are complete. Public visitors can browse published posts on the homepage and open individual published post pages.
 
 ## Implemented
 
@@ -30,7 +30,11 @@ Milestone 1 is complete. Milestone 2 is complete. Milestone 3D adds a custom adm
 - Initial admin bootstrap through environment variables
 - Custom admin login at `/admin/login`
 - Protected admin landing page at `/admin`
+- Admin category and post management pages
 - Image upload validation for JPEG, PNG, and WebP files up to 5 MB
+- Image replacement for existing posts
+- Public homepage at `/`
+- Public post detail pages at `/posts/{slug}`
 - Default Spring profile: `dev`
 - Application timezone configured from `APP_TIME_ZONE`, defaulting to `UTC`
 - MySQL datasource configuration for development and test profiles
@@ -40,7 +44,6 @@ Milestone 1 is complete. Milestone 2 is complete. Milestone 3D adds a custom adm
 The following technologies and architectural components are planned for the MVP and are not implemented yet:
 
 - Tailwind CLI
-- Admin media management
 - Modular monolith architecture
 
 ## Prerequisites
@@ -100,7 +103,13 @@ Unix-like shells:
 | `MAX_UPLOAD_REQUEST_SIZE` | `6MB` | Maximum multipart request size. | `6MB` |
 
 Admin sign-in is available at `/admin/login`.
-The application starts without Cloudinary credentials, but media upload is un available until all Cloudinary credential variables are supplied. Admin media forms are not implemented yet.
+The application starts without Cloudinary credentials, but media upload is unavailable until all Cloudinary credential variables are supplied.
+
+## Public Pages
+
+- `GET /` renders published posts only, newest published first, with fixed server-side pagination.
+- `GET /posts/{slug}` renders a published post detail page.
+- Draft and archived posts are not exposed through public routes and return the same 404 page as missing posts.
 
 ## Health
 
@@ -126,15 +135,18 @@ src/main/java/com/hourblue/admin/ Admin entity and repository
 src/main/java/com/hourblue/category/ Category entity and repository
 src/main/java/com/hourblue/image/ Cloudinary image-storage foundation
 src/main/java/com/hourblue/post/  Post entity, status enum, and repository
+src/main/java/com/hourblue/publicsite/ Public homepage and post detail controller
 src/main/resources/application*.yml Base and test-profile configuration
 src/main/resources/db/migration/  Flyway migrations
+src/main/resources/static/css/ Public and admin stylesheets
+src/main/resources/templates/ Server-rendered Thymeleaf templates
 src/test/java/com/hourblue/       Spring Boot tests
 pom.xml                           Maven project configuration
 mvnw, mvnw.cmd                    Maven Wrapper scripts
 ```
 
-## Milestone 4C
+## Milestone 5
 
-The admin post workflow is implemented at the service layer without UI controllers or templates yet. Draft creation validates imported post data, verifies the category, uploads to Cloudinary, and compensates by deleting the uploaded asset if persistence fails. Metadata editing preserves image fields and publication timestamp while enforcing slug rules. Publishing and archival statuses are enforced in the Post domain model and response-safe application exceptions distinguish invalid form data, missing category/post records, duplicate slugs, and storage problems.
+The public website now renders only published content on server-rendered pages. The repository queries used by public pages fetch categories with the posts so rendering works with `spring.jpa.open-in-view=false`.
 
-The next step is category and post admin pages for the management interface.
+The next step is Milestone 6: mood and category browsing.

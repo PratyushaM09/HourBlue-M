@@ -12,6 +12,7 @@ import com.hourblue.post.Post;
 import com.hourblue.post.PostRepository;
 import com.hourblue.post.PostStatus;
 
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -30,6 +31,9 @@ class ContentRepositoryTests {
 
     @Autowired
     private PostRepository postRepository;
+
+    @Autowired
+    private EntityManager entityManager;
 
     @Test
     void categoryCanBeSavedAndFoundBySlug() {
@@ -54,10 +58,14 @@ class ContentRepositoryTests {
         postRepository.save(published);
         postRepository.save(draft);
         postRepository.save(archived);
+        entityManager.flush();
+        entityManager.clear();
 
+        Post found = postRepository.findBySlugAndStatus(published.getSlug(), PostStatus.PUBLISHED).orElseThrow();
         assertEquals(
                 published.getSlug(),
-                postRepository.findBySlugAndStatus(published.getSlug(), PostStatus.PUBLISHED).orElseThrow().getSlug());
+                found.getSlug());
+        assertTrue(isLoaded(found.getCategory()));
         assertTrue(postRepository.findBySlugAndStatus(draft.getSlug(), PostStatus.PUBLISHED).isEmpty());
         assertTrue(postRepository.findBySlugAndStatus(archived.getSlug(), PostStatus.PUBLISHED).isEmpty());
     }
@@ -80,6 +88,8 @@ class ContentRepositoryTests {
         postRepository.save(oldest);
         postRepository.save(draft);
         postRepository.save(archived);
+        entityManager.flush();
+        entityManager.clear();
 
         Page<Post> page = postRepository.findAllByStatusOrderByPublishedAtDesc(
                 PostStatus.PUBLISHED,
@@ -89,6 +99,8 @@ class ContentRepositoryTests {
         assertEquals(2, page.getContent().size());
         assertEquals(newest.getSlug(), page.getContent().get(0).getSlug());
         assertEquals(middle.getSlug(), page.getContent().get(1).getSlug());
+        assertTrue(isLoaded(page.getContent().get(0).getCategory()));
+        assertTrue(isLoaded(page.getContent().get(1).getCategory()));
     }
 
     @Test
@@ -162,5 +174,9 @@ class ContentRepositoryTests {
 
     private String unique() {
         return UUID.randomUUID().toString();
+    }
+
+    private boolean isLoaded(Object entity) {
+        return entityManager.getEntityManagerFactory().getPersistenceUnitUtil().isLoaded(entity);
     }
 }

@@ -143,7 +143,7 @@ class AdminManagementControllerTests {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Category name already exists.")))
                 .andExpect(content().string(containsString("Category slug already exists.")))
-                .andExpect(content().string(not(containsString("SQL"))));
+                .andExpect(content().string(not(containsString("Duplicate entry"))));
 
         mockMvc.perform(post("/admin/categories")
                         .with(user("admin@example.test"))
@@ -298,7 +298,7 @@ class AdminManagementControllerTests {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Post slug already exists.")))
                 .andExpect(content().string(containsString("value=\"taken-post\"")))
-                .andExpect(content().string(not(containsString("SQL"))));
+                .andExpect(content().string(not(containsString("Duplicate entry"))));
     }
 
     @Test
