@@ -4,7 +4,7 @@ HourBlue is a visual-discovery website being built as a server-rendered Spring B
 
 ## Status
 
-Milestone 1 is complete. Milestone 2 is complete. Milestone 3C adds Spring Security, database-backed admin authentication, server-side sessions, and secure initial-admin bootstrap.
+Milestone 1 is complete. Milestone 2 is complete. Milestone 3D adds a custom admin login page and protected admin landing page.
 
 ## Implemented
 
@@ -16,6 +16,7 @@ Milestone 1 is complete. Milestone 2 is complete. Milestone 3C adds Spring Secur
 - Spring Boot Test
 - Spring Data JPA
 - Spring Security
+- Thymeleaf
 - MySQL Connector/J
 - Flyway
 - V1 content schema migration
@@ -26,6 +27,8 @@ Milestone 1 is complete. Milestone 2 is complete. Milestone 3C adds Spring Secur
 - BCrypt password hashing
 - Admin authentication with server-side sessions
 - Initial admin bootstrap through environment variables
+- Custom admin login at `/admin/login`
+- Protected admin landing page at `/admin`
 - Default Spring profile: `dev`
 - Application timezone configured from `APP_TIME_ZONE`, defaulting to `UTC`
 - MySQL datasource configuration for development and test profiles
@@ -34,7 +37,6 @@ Milestone 1 is complete. Milestone 2 is complete. Milestone 3C adds Spring Secur
 
 The following technologies and architectural components are planned for the MVP and are not implemented yet:
 
-- Thymeleaf with server-side rendering
 - Tailwind CLI
 - Cloudinary
 - Modular monolith architecture
@@ -89,7 +91,7 @@ Unix-like shells:
 | `ADMIN_BOOTSTRAP_PASSWORD` | none | Optional first-admin password used only when no admin exists. | |
 | `SESSION_COOKIE_SECURE` | `false` | Whether the session cookie requires HTTPS. | `true` |
 
-Spring Security currently uses the generated login page at `/login`. A custom admin login page is planned for Milestone 3D.
+Admin sign-in is available at `/admin/login`.
 
 ## Health
 
@@ -123,4 +125,4 @@ mvnw, mvnw.cmd                    Maven Wrapper scripts
 
 ## Next Step
 
-Next milestone: custom admin login and a minimal `/admin` landing page.
+Next milestone: Cloudinary and admin media management.

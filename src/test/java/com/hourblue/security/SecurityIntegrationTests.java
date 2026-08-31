@@ -1,9 +1,12 @@
 package com.hourblue.security;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestBuilders.formLogin;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.authenticated;
 import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.unauthenticated;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -23,6 +26,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -52,6 +56,28 @@ class SecurityIntegrationTests {
     private JdbcTemplate jdbcTemplate;
 
     @Test
+    void adminLoginPageIsPublicAndContainsFormFields() throws Exception {
+        mockMvc.perform(get("/admin/login"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Admin sign in")))
+                .andExpect(content().string(containsString("name=\"username\"")))
+                .andExpect(content().string(containsString("name=\"password\"")))
+                .andExpect(content().string(containsString("name=\"_csrf\"")));
+    }
+
+    @Test
+    void adminLoginPageShowsGenericErrorAndLogoutMessages() throws Exception {
+        mockMvc.perform(get("/admin/login?error"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Invalid email or password.")))
+                .andExpect(content().string(not(containsString("disabled"))));
+
+        mockMvc.perform(get("/admin/login?logout"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("You have been signed out.")));
+    }
+
+    @Test
     void healthRemainsPublic() throws Exception {
         mockMvc.perform(get("/actuator/health"))
                 .andExpect(status().isOk());
@@ -59,31 +85,39 @@ class SecurityIntegrationTests {
 
     @Test
     void unauthenticatedAdminRequestRedirectsToLogin() throws Exception {
-        mockMvc.perform(get("/admin/test"))
+        mockMvc.perform(get("/admin"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrlPattern("**/login"));
+                .andExpect(redirectedUrlPattern("**/admin/login"));
     }
 
     @Test
     void successfulFormLoginCreatesAuthenticatedAccess() throws Exception {
         Credentials admin = admin();
 
-        MvcResult login = mockMvc.perform(formLogin().user(admin.email()).password(admin.password()))
+        MvcResult login = mockMvc.perform(formLogin("/admin/login").user(admin.email()).password(admin.password()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/admin"))
                 .andExpect(authenticated().withUsername(admin.email()))
                 .andReturn();
 
-        mockMvc.perform(get("/admin/test").session((org.springframework.mock.web.MockHttpSession) login.getRequest().getSession()))
+        mockMvc.perform(get("/admin").session(session(login)))
                 .andExpect(status().isOk())
-                .andExpect(content().string("admin"));
+                .andExpect(content().string(containsString("HourBlue admin")))
+                .andExpect(content().string(containsString(admin.email())));
+    }
+
+    @Test
+    void authenticatedAdminVisitingLoginRedirectsToAdmin() throws Exception {
+        mockMvc.perform(get("/admin/login").with(user("admin@example.test")))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin"));
     }
 
     @Test
     void failedFormLoginRedirectsToError() throws Exception {
-        mockMvc.perform(formLogin().user(email()).password("wrong-test-password"))
+        mockMvc.perform(formLogin("/admin/login").user(email()).password("wrong-test-password"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/login?error"))
+                .andExpect(redirectedUrl("/admin/login?error"))
                 .andExpect(unauthenticated());
     }
 
@@ -91,40 +125,54 @@ class SecurityIntegrationTests {
     void disabledAdminCannotLogIn() throws Exception {
         Credentials admin = disabledAdmin();
 
-        mockMvc.perform(formLogin().user(admin.email()).password(admin.password()))
+        mockMvc.perform(formLogin("/admin/login").user(admin.email()).password(admin.password()))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/login?error"))
+                .andExpect(redirectedUrl("/admin/login?error"))
                 .andExpect(unauthenticated());
     }
 
     @Test
     void logoutRequiresPostAndRedirects() throws Exception {
         Credentials admin = admin();
-        MvcResult login = mockMvc.perform(formLogin().user(admin.email()).password(admin.password()))
+        MvcResult login = mockMvc.perform(formLogin("/admin/login").user(admin.email()).password(admin.password()))
                 .andReturn();
-        org.springframework.mock.web.MockHttpSession session =
-                (org.springframework.mock.web.MockHttpSession) login.getRequest().getSession();
+        MockHttpSession session = session(login);
 
         mockMvc.perform(get("/admin/logout").session(session))
                 .andExpect(status().isNotFound());
 
         mockMvc.perform(post("/admin/logout").with(csrf()).session(session))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/login?logout"))
+                .andExpect(redirectedUrl("/admin/login?logout"))
                 .andExpect(unauthenticated());
 
-        mockMvc.perform(get("/admin/test").session(session))
-        .andExpect(status().is3xxRedirection())
-        .andExpect(redirectedUrlPattern("**/login"));        
+        mockMvc.perform(get("/admin").session(session))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrlPattern("**/admin/login"));
+    }
+
+    @Test
+    void loginAndLogoutPostRequireCsrf() throws Exception {
+        Credentials admin = admin();
+
+        mockMvc.perform(post("/admin/login")
+                        .param("username", admin.email())
+                        .param("password", admin.password()))
+                .andExpect(status().isForbidden());
+
+        MvcResult login = mockMvc.perform(formLogin("/admin/login").user(admin.email()).password(admin.password()))
+                .andReturn();
+
+        mockMvc.perform(post("/admin/logout").session(session(login)))
+                .andExpect(status().isForbidden());
     }
 
     @Test
     void protectedPostRequiresCsrf() throws Exception {
         Credentials admin = admin();
-        MvcResult login = mockMvc.perform(formLogin().user(admin.email()).password(admin.password()))
+        MvcResult login = mockMvc.perform(formLogin("/admin/login").user(admin.email()).password(admin.password()))
                 .andReturn();
-        org.springframework.mock.web.MockHttpSession session =
-                (org.springframework.mock.web.MockHttpSession) login.getRequest().getSession();
+        MockHttpSession session = session(login);
 
         mockMvc.perform(post("/admin/test").session(session))
                 .andExpect(status().isForbidden());
@@ -139,6 +187,19 @@ class SecurityIntegrationTests {
         mockMvc.perform(get("/public-test"))
                 .andExpect(status().isOk())
                 .andExpect(content().string("public"));
+    }
+
+    @Test
+    void generatedLoginPageIsNoLongerAvailable() throws Exception {
+        mockMvc.perform(get("/login"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void adminCssIsPublic() throws Exception {
+        mockMvc.perform(get("/css/admin.css"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("focus-visible")));
     }
 
     private Credentials admin() {
@@ -164,6 +225,10 @@ class SecurityIntegrationTests {
 
     private String unique() {
         return UUID.randomUUID().toString();
+    }
+
+    private MockHttpSession session(MvcResult result) {
+        return (MockHttpSession) result.getRequest().getSession();
     }
 
     private record Credentials(String email, String password) {

@@ -15,15 +15,17 @@ class SecurityConfiguration {
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/actuator/health", "/login", "/error").permitAll()
+                        .requestMatchers("/actuator/health", "/admin/login", "/error", "/css/**").permitAll()
                         .requestMatchers("/admin/**").authenticated()
                         .anyRequest().permitAll())
                 .formLogin(form -> form
+                        .loginPage("/admin/login")
+                        .loginProcessingUrl("/admin/login")
                         .defaultSuccessUrl("/admin", true)
-                        .failureUrl("/login?error"))
+                        .failureUrl("/admin/login?error"))
                 .logout(logout -> logout
                         .logoutUrl("/admin/logout")
-                        .logoutSuccessUrl("/login?logout"))
+                        .logoutSuccessUrl("/admin/login?logout"))
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .build();
     }

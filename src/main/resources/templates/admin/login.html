@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Admin sign in - HourBlue</title>
+    <link rel="stylesheet" th:href="@{/css/admin.css}" href="/css/admin.css">
+</head>
+<body>
+    <main class="auth-shell">
+        <section class="panel" aria-labelledby="login-title">
+            <p class="brand">HourBlue</p>
+            <h1 id="login-title">Admin sign in</h1>
+
+           <p class="message error" role="alert" th:if="${param.error}">
+    Invalid email or password.
+</p>
+<p class="message success" role="status" th:if="${param.logout}">
+    You have been signed out.
+</p>
+            <form th:action="@{/admin/login}" action="/admin/login" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+                <label for="username">Email</label>
+                <input id="username" name="username" type="email" autocomplete="username" required autofocus>
+
+                <label for="password">Password</label>
+                <input id="password" name="password" type="password" autocomplete="current-password" required>
+
+                <button type="submit">Sign in</button>
+            </form>
+        </section>
+    </main>
+</body>
+</html>
