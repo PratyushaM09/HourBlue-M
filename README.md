@@ -4,7 +4,7 @@ HourBlue is a visual-discovery website being built as a server-rendered Spring B
 
 ## Status
 
-Milestone 1 is complete. Milestone 2 is complete. Milestone 3B adds admin persistence only; authentication and security are not implemented yet.
+Milestone 1 is complete. Milestone 2 is complete. Milestone 3C adds Spring Security, database-backed admin authentication, server-side sessions, and secure initial-admin bootstrap.
 
 ## Implemented
 
@@ -15,6 +15,7 @@ Milestone 1 is complete. Milestone 2 is complete. Milestone 3B adds admin persis
 - Spring Boot Actuator
 - Spring Boot Test
 - Spring Data JPA
+- Spring Security
 - MySQL Connector/J
 - Flyway
 - V1 content schema migration
@@ -22,6 +23,9 @@ Milestone 1 is complete. Milestone 2 is complete. Milestone 3B adds admin persis
 - `Category`, `Post`, and `PostStatus`
 - `CategoryRepository` and `PostRepository`
 - `Admin` and `AdminRepository`
+- BCrypt password hashing
+- Admin authentication with server-side sessions
+- Initial admin bootstrap through environment variables
 - Default Spring profile: `dev`
 - Application timezone configured from `APP_TIME_ZONE`, defaulting to `UTC`
 - MySQL datasource configuration for development and test profiles
@@ -32,8 +36,6 @@ The following technologies and architectural components are planned for the MVP 
 
 - Thymeleaf with server-side rendering
 - Tailwind CLI
-- Spring Security with admin sessions
-- Secure initial-admin bootstrap
 - Cloudinary
 - Modular monolith architecture
 
@@ -83,6 +85,11 @@ Unix-like shells:
 | `TEST_DB_NAME` | `hourblue_test` | Test database name. | `hourblue_test` |
 | `DB_USERNAME` | `hourblue_app` | MySQL application user. | `hourblue_app` |
 | `DB_PASSWORD` | none | MySQL password. Must be supplied externally and never committed. | |
+| `ADMIN_BOOTSTRAP_EMAIL` | none | Optional first-admin email used only when no admin exists. | |
+| `ADMIN_BOOTSTRAP_PASSWORD` | none | Optional first-admin password used only when no admin exists. | |
+| `SESSION_COOKIE_SECURE` | `false` | Whether the session cookie requires HTTPS. | `true` |
+
+Spring Security currently uses the generated login page at `/login`. A custom admin login page is planned for Milestone 3D.
 
 ## Health
 
@@ -116,4 +123,4 @@ mvnw, mvnw.cmd                    Maven Wrapper scripts
 
 ## Next Step
 
-Next milestone: Spring Security configuration and secure initial-admin bootstrap.
+Next milestone: custom admin login and a minimal `/admin` landing page.
