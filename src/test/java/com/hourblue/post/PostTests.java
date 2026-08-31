@@ -108,4 +108,36 @@ class PostTests {
         assertEquals("https://cdn.example.com/image.jpg", post.getImageUrl());
         assertEquals("public-old", post.getCloudinaryPublicId());
     }
+
+    @Test
+    void replaceImageUpdatesOnlyImageFields() {
+        Category category = new Category("Design", "design", "Design");
+        Instant publishedAt = Instant.parse("2026-01-02T00:00:00Z");
+        Post post = new Post(category, "published-post", "Title", "Description", "https://cdn.example.com/old.jpg", "public-old", "Alt text", "https://example.com/source");
+        post.publish(publishedAt);
+
+        post.replaceImage("https://cdn.example.com/new.jpg", "public-new");
+
+        assertEquals(category, post.getCategory());
+        assertEquals("published-post", post.getSlug());
+        assertEquals("Title", post.getTitle());
+        assertEquals("Description", post.getDescription());
+        assertEquals("Alt text", post.getAltText());
+        assertEquals("https://example.com/source", post.getSourceUrl());
+        assertEquals(PostStatus.PUBLISHED, post.getStatus());
+        assertEquals(publishedAt, post.getPublishedAt());
+        assertEquals("https://cdn.example.com/new.jpg", post.getImageUrl());
+        assertEquals("public-new", post.getCloudinaryPublicId());
+    }
+
+    @Test
+    void replaceImageRejectsMissingImageValues() {
+        Category category = new Category("Design", "design", "Design");
+        Post post = new Post(category, "draft-post", "Title", "Description", "https://cdn.example.com/old.jpg", "public-old", "Alt text", null);
+
+        assertThrows(IllegalArgumentException.class, () -> post.replaceImage(null, "public-new"));
+        assertThrows(IllegalArgumentException.class, () -> post.replaceImage(" ", "public-new"));
+        assertThrows(IllegalArgumentException.class, () -> post.replaceImage("https://cdn.example.com/new.jpg", null));
+        assertThrows(IllegalArgumentException.class, () -> post.replaceImage("https://cdn.example.com/new.jpg", " "));
+    }
 }

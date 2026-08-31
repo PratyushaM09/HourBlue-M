@@ -73,6 +73,7 @@ public class AdminPostController {
         return postRepository.findWithCategoryById(id)
                 .map(post -> {
                     model.addAttribute("postForm", formFrom(post));
+                    model.addAttribute("post", post);
                     addFormAttributes(model, "/admin/posts/" + id, post.getStatus() == PostStatus.DRAFT, false);
                     return "admin/posts/form";
                 })
@@ -95,9 +96,28 @@ public class AdminPostController {
             if (post == null) {
                 return notFound(model, response, "Post not found.");
             }
+            model.addAttribute("post", post);
             model.addAttribute("errorMessage", safePostError(exception));
             addFormAttributes(model, "/admin/posts/" + id, post.getStatus() == PostStatus.DRAFT, false);
             return "admin/posts/form";
+        }
+    }
+
+    @PostMapping("/admin/posts/{id}/image")
+    String replaceImage(
+            @PathVariable Long id,
+            @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
+            RedirectAttributes redirectAttributes,
+            Model model,
+            HttpServletResponse response) {
+        try {
+            adminPostService.replaceImage(id, imageFile);
+            return "redirect:/admin/posts/" + id + "/edit";
+        } catch (PostNotFoundException exception) {
+            return notFound(model, response, exception.getMessage());
+        } catch (RuntimeException exception) {
+            redirectAttributes.addFlashAttribute("errorMessage", safePostError(exception));
+            return "redirect:/admin/posts/" + id + "/edit";
         }
     }
 

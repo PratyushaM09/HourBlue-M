@@ -49,6 +49,16 @@
 
                 <button type="submit">Save post</button>
             </form>
+
+            <section th:if="${!imageRequired}" aria-labelledby="image-title">
+                <h2 id="image-title">Image</h2>
+                <img class="current-image" th:src="${post.imageUrl}" th:alt="${post.altText}" src="https://cdn.example.com/image.jpg" alt="Current post image">
+                <form th:action="@{/admin/posts/{id}/image(id=${post.id})}" method="post" enctype="multipart/form-data">
+                    <label for="replacementImageFile">Replace image</label>
+                    <input id="replacementImageFile" name="imageFile" type="file" accept="image/jpeg,image/png,image/webp" required>
+                    <button type="submit">Replace image</button>
+                </form>
+            </section>
         </section>
     </main>
 </body>

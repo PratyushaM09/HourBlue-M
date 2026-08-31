@@ -14,6 +14,8 @@ import com.hourblue.post.PostStatus;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -22,6 +24,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class AdminPostService {
+
+    private static final Logger logger = LoggerFactory.getLogger(AdminPostService.class);
 
     private final PostRepository postRepository;
     private final CategoryRepository categoryRepository;
@@ -106,6 +110,45 @@ public class AdminPostService {
         });
     }
 
+    public Post replaceImage(Long postId, MultipartFile imageFile) {
+        postRepository.findById(postId)
+                .orElseThrow(PostNotFoundException::new);
+
+        CloudinaryImageStorage storage = storageProvider.getIfAvailable();
+        if (storage == null) {
+            throw new ImageStorageException();
+        }
+
+        UploadedImage uploaded = storage.upload(imageFile);
+        ImageReplacement replacement;
+        try {
+            replacement = transactionTemplate.execute(status -> {
+                Post post = postRepository.findById(postId)
+                        .orElseThrow(PostNotFoundException::new);
+                String previousPublicId = post.getCloudinaryPublicId();
+                post.replaceImage(uploaded.secureUrl(), uploaded.publicId());
+                return new ImageReplacement(post, previousPublicId);
+            });
+        } catch (RuntimeException persistenceFailure) {
+            try {
+                storage.delete(uploaded.publicId());
+            } catch (RuntimeException cleanupFailure) {
+                persistenceFailure.addSuppressed(cleanupFailure);
+            }
+            throw persistenceFailure;
+        }
+
+        if (replacement.previousPublicId() != null && !replacement.previousPublicId().isBlank()
+                && !replacement.previousPublicId().equals(uploaded.publicId())) {
+            try {
+                storage.delete(replacement.previousPublicId());
+            } catch (RuntimeException exception) {
+                logger.warn("Previous image asset cleanup failed.");
+            }
+        }
+        return replacement.post();
+    }
+
     public Post publish(Long postId) {
         return transactionTemplate.execute(status -> {
             Post post = postRepository.findById(postId)
@@ -143,5 +186,8 @@ public class AdminPostService {
         if (postRepository.findBySlug(slug).isPresent()) {
             throw new DuplicateSlugException();
         }
+    }
+
+    private record ImageReplacement(Post post, String previousPublicId) {
     }
 }

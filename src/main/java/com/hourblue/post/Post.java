@@ -185,6 +185,15 @@ public class Post {
         this.sourceUrl = sourceUrl;
     }
 
+    public void replaceImage(String imageUrl, String cloudinaryPublicId) {
+        if (imageUrl == null || imageUrl.isBlank()
+                || cloudinaryPublicId == null || cloudinaryPublicId.isBlank()) {
+            throw new IllegalArgumentException("Post image values are required.");
+        }
+        this.imageUrl = imageUrl;
+        this.cloudinaryPublicId = cloudinaryPublicId;
+    }
+
     @PrePersist
     void setCreatedTimestamps() {
         Instant now = Instant.now();

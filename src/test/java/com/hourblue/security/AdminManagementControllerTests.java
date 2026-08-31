@@ -26,6 +26,7 @@ import java.util.Optional;
 import com.hourblue.admin.post.AdminPostService;
 import com.hourblue.admin.post.DuplicateSlugException;
 import com.hourblue.admin.post.InvalidPostFormException;
+import com.hourblue.admin.post.PostNotFoundException;
 import com.hourblue.admin.post.PostForm;
 import com.hourblue.category.Category;
 import com.hourblue.category.CategoryRepository;
@@ -196,7 +197,9 @@ class AdminManagementControllerTests {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Edit post")))
                 .andExpect(content().string(containsString("value=\"draft-post\"")))
-                .andExpect(content().string(not(containsString("type=\"file\""))));
+                .andExpect(content().string(containsString("https://cdn.example.com/image.jpg")))
+                .andExpect(content().string(containsString("/admin/posts/5/image")))
+                .andExpect(content().string(containsString("id=\"replacementImageFile\"")));
     }
 
     @Test
@@ -296,6 +299,50 @@ class AdminManagementControllerTests {
                 .andExpect(content().string(containsString("Post slug already exists.")))
                 .andExpect(content().string(containsString("value=\"taken-post\"")))
                 .andExpect(content().string(not(containsString("SQL"))));
+    }
+
+    @Test
+    void replaceImageRouteRequiresCsrfAndDelegates() throws Exception {
+        MockMultipartFile image = new MockMultipartFile("imageFile", "post.jpg", "image/jpeg", new byte[] {1});
+
+        mockMvc.perform(multipart("/admin/posts/5/image")
+                        .file(image)
+                        .with(user("admin@example.test")))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(multipart("/admin/posts/5/image")
+                        .file(image)
+                        .with(user("admin@example.test"))
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/posts/5/edit"));
+
+        verify(adminPostService).replaceImage(org.mockito.Mockito.eq(5L), any(MultipartFile.class));
+    }
+
+    @Test
+    void replaceImageErrorsRemainSafe() throws Exception {
+        MockMultipartFile image = new MockMultipartFile("imageFile", "post.jpg", "image/jpeg", new byte[] {1});
+
+        doThrow(new ImageStorageException()).when(adminPostService)
+                .replaceImage(org.mockito.Mockito.eq(5L), any());
+        mockMvc.perform(multipart("/admin/posts/5/image")
+                        .file(image)
+                        .with(user("admin@example.test"))
+                        .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/posts/5/edit"))
+                .andExpect(flash().attribute("errorMessage", "Image storage operation failed."));
+
+        doThrow(new PostNotFoundException()).when(adminPostService)
+                .replaceImage(org.mockito.Mockito.eq(404L), any());
+        mockMvc.perform(multipart("/admin/posts/404/image")
+                        .file(image)
+                        .with(user("admin@example.test"))
+                        .with(csrf()))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString("Post not found.")))
+                .andExpect(content().string(not(containsString("Exception"))));
     }
 
     @Test

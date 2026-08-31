@@ -46,11 +46,11 @@ class ContentRepositoryTests {
         published.publish(Instant.parse("2026-01-02T00:00:00Z"));
         Post draft = post(category, "draft");
         Post archived = post(category, "archived");
-Instant archivedAt = Instant.parse("2026-01-03T00:00:00Z");
-archived.publish(archivedAt);
-archived.archive();
+        Instant archivedAt = Instant.parse("2026-01-03T00:00:00Z");
+        archived.publish(archivedAt);
+        archived.archive();
 
-assertEquals(archivedAt, archived.getPublishedAt());
+        assertEquals(archivedAt, archived.getPublishedAt());
         postRepository.save(published);
         postRepository.save(draft);
         postRepository.save(archived);
@@ -111,6 +111,37 @@ assertEquals(archivedAt, archived.getPublishedAt());
 
         assertEquals(1, page.getTotalElements());
         assertEquals(requestedPublished.getSlug(), page.getContent().get(0).getSlug());
+    }
+
+    @Test
+    void imageReplacementPersistsImageFieldsOnly() {
+        Category category = categoryRepository.save(category("Replacement"));
+        Instant publishedAt = Instant.parse("2026-01-02T00:00:00Z");
+        Post post = new Post(
+                category,
+                "replacement-" + unique(),
+                "Replacement title",
+                "Replacement description",
+                "https://cdn.example.com/old.jpg",
+                "public-old",
+                "Replacement alt",
+                "https://example.com/source");
+        post.publish(publishedAt);
+        postRepository.saveAndFlush(post);
+
+        post.replaceImage("https://cdn.example.com/new.jpg", "public-new");
+        postRepository.saveAndFlush(post);
+
+        Post found = postRepository.findById(post.getId()).orElseThrow();
+        assertEquals("https://cdn.example.com/new.jpg", found.getImageUrl());
+        assertEquals("public-new", found.getCloudinaryPublicId());
+        assertEquals(post.getSlug(), found.getSlug());
+        assertEquals("Replacement title", found.getTitle());
+        assertEquals("Replacement description", found.getDescription());
+        assertEquals("Replacement alt", found.getAltText());
+        assertEquals("https://example.com/source", found.getSourceUrl());
+        assertEquals(PostStatus.PUBLISHED, found.getStatus());
+        assertEquals(publishedAt, found.getPublishedAt());
     }
 
     private Category category(String label) {
