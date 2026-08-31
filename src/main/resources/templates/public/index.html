@@ -15,6 +15,22 @@
             <p>Browse published finds selected for image-first wandering and thoughtful detail.</p>
         </header>
 
+        <section class="today-moment" aria-labelledby="today-moment-title" th:if="${todayMoment != null}">
+            <p class="browse-type">Today's Moment</p>
+            <a class="image-link" th:href="@{/posts/{slug}(slug=${todayMoment.slug})}">
+                <img th:src="${todayMoment.imageUrl}" th:alt="${todayMoment.altText}">
+            </a>
+            <div class="post-card-body">
+                <p class="post-meta">
+                    <a th:href="@{/categories/{slug}(slug=${todayMoment.category.slug})}" th:text="${todayMoment.category.name}"></a>
+                    <a th:if="${todayMoment.mood != null}" th:href="@{/moods/{slug}(slug=${todayMoment.mood.slug})}" th:text="${todayMoment.mood.displayName}"></a>
+                </p>
+                <h2 id="today-moment-title">
+                    <a th:href="@{/posts/{slug}(slug=${todayMoment.slug})}" th:text="${todayMoment.title}"></a>
+                </h2>
+            </div>
+        </section>
+
         <section aria-labelledby="gallery-title">
             <h2 id="gallery-title">Published Posts</h2>
 

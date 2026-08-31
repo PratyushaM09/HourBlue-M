@@ -8,6 +8,7 @@ import com.hourblue.post.Mood;
 import com.hourblue.post.Post;
 import com.hourblue.post.PostRepository;
 import com.hourblue.post.PostStatus;
+import com.hourblue.today.TodayMomentService;
 
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.data.domain.Page;
@@ -25,10 +26,15 @@ public class PublicPostController {
 
     private final CategoryRepository categoryRepository;
     private final PostRepository postRepository;
+    private final TodayMomentService todayMomentService;
 
-    public PublicPostController(CategoryRepository categoryRepository, PostRepository postRepository) {
+    public PublicPostController(
+            CategoryRepository categoryRepository,
+            PostRepository postRepository,
+            TodayMomentService todayMomentService) {
         this.categoryRepository = categoryRepository;
         this.postRepository = postRepository;
+        this.todayMomentService = todayMomentService;
     }
 
     @GetMapping("/")
@@ -37,6 +43,7 @@ public class PublicPostController {
         model.addAttribute("posts", postRepository.findAllByStatusOrderByPublishedAtDesc(
                 PostStatus.PUBLISHED,
                 PageRequest.of(pageNumber, PAGE_SIZE)));
+        model.addAttribute("todayMoment", todayMomentService.resolveTodayMoment().orElse(null));
         return "public/index";
     }
 

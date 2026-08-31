@@ -2,6 +2,7 @@ package com.hourblue;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.time.Clock;
 import java.time.ZoneId;
 
 import org.junit.jupiter.api.Test;
@@ -16,8 +17,12 @@ class ApplicationTimeConfigurationTests {
     @Autowired
     private ZoneId applicationZoneId;
 
+    @Autowired
+    private Clock applicationClock;
+
     @Test
     void timeZoneCanBeConfiguredExternally() {
         assertEquals(ZoneId.of("Asia/Kolkata"), applicationZoneId);
+        assertEquals(applicationZoneId, applicationClock.getZone());
     }
 }

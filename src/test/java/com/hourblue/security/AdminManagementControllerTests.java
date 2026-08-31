@@ -35,6 +35,7 @@ import com.hourblue.image.ImageStorageException;
 import com.hourblue.post.Mood;
 import com.hourblue.post.Post;
 import com.hourblue.post.PostRepository;
+import com.hourblue.today.TodayMomentService;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -65,6 +66,9 @@ class AdminManagementControllerTests {
     @MockitoBean
     private AdminPostService adminPostService;
 
+    @MockitoBean
+    private TodayMomentService todayMomentService;
+
     @Test
     void unauthenticatedAdminManagementRequestsRedirectToLogin() throws Exception {
         mockMvc.perform(get("/admin/categories"))
@@ -78,6 +82,10 @@ class AdminManagementControllerTests {
         mockMvc.perform(get("/admin/posts/new"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrlPattern("**/admin/login"));
+
+        mockMvc.perform(get("/admin/today"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrlPattern("**/admin/login"));
     }
 
     @Test
@@ -85,7 +93,8 @@ class AdminManagementControllerTests {
         mockMvc.perform(get("/admin").with(user("admin@example.test")))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("/admin/categories")))
-                .andExpect(content().string(containsString("/admin/posts")));
+                .andExpect(content().string(containsString("/admin/posts")))
+                .andExpect(content().string(containsString("/admin/today")));
     }
 
     @Test

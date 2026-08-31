@@ -1,5 +1,6 @@
 package com.hourblue;
 
+import java.time.Clock;
 import java.time.ZoneId;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -13,5 +14,10 @@ class ApplicationTimeConfiguration {
     ZoneId applicationZoneId(
             @Value("${hourblue.time-zone}") String timeZone) {
         return ZoneId.of(timeZone);
+    }
+
+    @Bean
+    Clock applicationClock(ZoneId applicationZoneId) {
+        return Clock.system(applicationZoneId);
     }
 }

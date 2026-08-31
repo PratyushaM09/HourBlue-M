@@ -178,6 +178,26 @@ class ContentRepositoryTests {
     }
 
     @Test
+    void newestPublishedFallbackFetchesCategory() {
+        Category category = categoryRepository.save(category("Fallback"));
+        Post newest = post(category, "fallback-newest");
+        newest.publish(Instant.parse("2099-01-03T00:00:00Z"));
+        Post oldest = post(category, "fallback-oldest");
+        oldest.publish(Instant.parse("2099-01-01T00:00:00Z"));
+        Post draft = post(category, "fallback-draft");
+        postRepository.save(newest);
+        postRepository.save(oldest);
+        postRepository.save(draft);
+        entityManager.flush();
+        entityManager.clear();
+
+        Post found = postRepository.findFirstByStatusOrderByPublishedAtDesc(PostStatus.PUBLISHED).orElseThrow();
+
+        assertEquals(newest.getSlug(), found.getSlug());
+        assertTrue(isLoaded(found.getCategory()));
+    }
+
+    @Test
     void imageReplacementPersistsImageFieldsOnly() {
         Category category = categoryRepository.save(category("Replacement"));
         Instant publishedAt = Instant.parse("2026-01-02T00:00:00Z");

@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Today's Moment - HourBlue</title>
+    <link rel="stylesheet" th:href="@{/css/admin.css}" href="/css/admin.css">
+</head>
+<body>
+    <main class="admin-shell">
+        <section class="panel wide" aria-labelledby="today-title">
+            <p class="brand">HourBlue</p>
+            <nav class="admin-nav" aria-label="Admin">
+                <a th:href="@{/admin}" href="/admin">Admin</a>
+                <a th:href="@{/admin/categories}" href="/admin/categories">Categories</a>
+                <a th:href="@{/admin/posts}" href="/admin/posts">Posts</a>
+            </nav>
+
+            <h1 id="today-title">Today's Moment</h1>
+
+            <p class="message error" role="alert" th:if="${errorMessage}" th:text="${errorMessage}">Error</p>
+
+            <form th:action="@{/admin/today}" method="get">
+                <label for="date">Date</label>
+                <input id="date" name="date" type="date" th:value="${dateValue}" required>
+                <button type="submit" class="secondary">View date</button>
+            </form>
+
+            <section th:if="${todayMoment != null}" aria-labelledby="current-today-title">
+                <h2 id="current-today-title">Current assignment</h2>
+                <p>
+                    <a th:href="@{/admin/posts/{id}/edit(id=${todayMoment.post.id})}" th:text="${todayMoment.post.title}">Post title</a>
+                </p>
+            </section>
+
+            <form th:action="@{/admin/today}" method="post">
+                <input type="hidden" name="featureDate" th:value="${dateValue}">
+
+                <label for="postId">Published post</label>
+                <select id="postId" name="postId" required>
+                    <option value="">Choose a post</option>
+                    <option
+                            th:each="post : ${publishedPosts}"
+                            th:value="${post.id}"
+                            th:selected="${todayMoment != null && todayMoment.post.id == post.id}"
+                            th:text="|${post.title} (${post.publishedAt})|">Post title</option>
+                </select>
+
+                <button type="submit">Save Today's Moment</button>
+            </form>
+
+            <p class="empty" th:if="${#lists.isEmpty(publishedPosts)}">No published posts are available.</p>
+        </section>
+    </main>
+</body>
+</html>

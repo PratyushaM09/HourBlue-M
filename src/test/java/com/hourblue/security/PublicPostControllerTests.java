@@ -23,6 +23,7 @@ import com.hourblue.post.Post;
 import com.hourblue.post.PostRepository;
 import com.hourblue.post.PostStatus;
 import com.hourblue.publicsite.PublicPostController;
+import com.hourblue.today.TodayMomentService;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -48,9 +49,13 @@ class PublicPostControllerTests {
     @MockitoBean
     private CategoryRepository categoryRepository;
 
+    @MockitoBean
+    private TodayMomentService todayMomentService;
+
     @Test
     void homepageIsPublicAndRendersPublishedCards() throws Exception {
         Post post = publishedPost("published-post", "Published title", "https://cdn.example.com/post.jpg", Mood.CALM);
+        when(todayMomentService.resolveTodayMoment()).thenReturn(Optional.empty());
         when(postRepository.findAllByStatusOrderByPublishedAtDesc(eq(PostStatus.PUBLISHED), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(post)));
 
@@ -69,6 +74,7 @@ class PublicPostControllerTests {
 
     @Test
     void homepageShowsEmptyState() throws Exception {
+        when(todayMomentService.resolveTodayMoment()).thenReturn(Optional.empty());
         when(postRepository.findAllByStatusOrderByPublishedAtDesc(eq(PostStatus.PUBLISHED), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of()));
 
@@ -79,6 +85,7 @@ class PublicPostControllerTests {
 
     @Test
     void homepageUsesFixedPaginationAndIgnoresClientSort() throws Exception {
+        when(todayMomentService.resolveTodayMoment()).thenReturn(Optional.empty());
         when(postRepository.findAllByStatusOrderByPublishedAtDesc(eq(PostStatus.PUBLISHED), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of()));
 
@@ -97,6 +104,7 @@ class PublicPostControllerTests {
     @Test
     void homepagePaginationLinksAreRendered() throws Exception {
         Post post = publishedPost("page-post", "Page title", "https://cdn.example.com/page.jpg");
+        when(todayMomentService.resolveTodayMoment()).thenReturn(Optional.empty());
         when(postRepository.findAllByStatusOrderByPublishedAtDesc(eq(PostStatus.PUBLISHED), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(post), PageRequest.of(1, 24), 50));
 
@@ -104,6 +112,37 @@ class PublicPostControllerTests {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("/?page=0")))
                 .andExpect(content().string(containsString("/?page=2")));
+    }
+
+    @Test
+    void homepageRendersTodayMomentWithMood() throws Exception {
+        Post todayMoment = publishedPost("today-post", "Today title", "https://cdn.example.com/today.jpg", Mood.CALM);
+        when(todayMomentService.resolveTodayMoment()).thenReturn(Optional.of(todayMoment));
+        when(postRepository.findAllByStatusOrderByPublishedAtDesc(eq(PostStatus.PUBLISHED), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of()));
+
+        mockMvc.perform(get("/"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Today's Moment")))
+                .andExpect(content().string(containsString("Today title")))
+                .andExpect(content().string(containsString("https://cdn.example.com/today.jpg")))
+                .andExpect(content().string(containsString("alt=\"Today title image\"")))
+                .andExpect(content().string(containsString("/posts/today-post")))
+                .andExpect(content().string(containsString("/categories/design")))
+                .andExpect(content().string(containsString("/moods/calm")));
+    }
+
+    @Test
+    void homepageTodayMomentMoodLinkRendersOnlyWhenMoodExists() throws Exception {
+        Post todayMoment = publishedPost("today-post", "Today title", "https://cdn.example.com/today.jpg");
+        when(todayMomentService.resolveTodayMoment()).thenReturn(Optional.of(todayMoment));
+        when(postRepository.findAllByStatusOrderByPublishedAtDesc(eq(PostStatus.PUBLISHED), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of()));
+
+        mockMvc.perform(get("/"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Today's Moment")))
+                .andExpect(content().string(not(containsString("/moods/"))));
     }
 
     @Test

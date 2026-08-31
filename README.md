@@ -4,7 +4,7 @@ HourBlue is a visual-discovery website being built as a server-rendered Spring B
 
 ## Status
 
-Milestones 1 through 6 are complete. Public visitors can browse published posts on the homepage, category pages, mood pages, and individual post pages.
+Milestones 1 through 7 are complete. Public visitors can browse published posts on the homepage, category pages, mood pages, and individual post pages.
 
 ## Implemented
 
@@ -23,8 +23,10 @@ Milestones 1 through 6 are complete. Public visitors can browse published posts 
 - V1 content schema migration
 - V2 admin schema migration
 - V3 post mood migration
-- `Category`, `Post`, `PostStatus`, and `Mood`
+- V4 Today's Moment schema migration
+- `Category`, `Post`, `PostStatus`, `Mood`, and `TodayMoment`
 - `CategoryRepository` and `PostRepository`
+- `TodayMomentRepository`
 - `Admin` and `AdminRepository`
 - BCrypt password hashing
 - Admin authentication with server-side sessions
@@ -32,6 +34,7 @@ Milestones 1 through 6 are complete. Public visitors can browse published posts 
 - Custom admin login at `/admin/login`
 - Protected admin landing page at `/admin`
 - Admin category and post management pages
+- Admin Today's Moment management at `/admin/today`
 - Image upload validation for JPEG, PNG, and WebP files up to 5 MB
 - Image replacement for existing posts
 - Public homepage at `/`
@@ -108,6 +111,12 @@ Unix-like shells:
 Admin sign-in is available at `/admin/login`.
 The application starts without Cloudinary credentials, but media upload is unavailable until all Cloudinary credential variables are supplied.
 
+## Today's Moment
+
+Today's Moment highlights one published post for a specific application-local calendar date. Explicit assignments are unique per date and are managed at `/admin/today`.
+
+The current date is resolved with the configured application timezone from `APP_TIME_ZONE`. If today's explicit assignment is missing or no longer points to a published post, the homepage falls back to the newest currently published post without writing a database row.
+
 ## Public Pages
 
 - `GET /` renders published posts only, newest published first, with fixed server-side pagination.
@@ -152,8 +161,8 @@ pom.xml                           Maven project configuration
 mvnw, mvnw.cmd                    Maven Wrapper scripts
 ```
 
-## Milestone 6
+## Milestone 7
 
-The public website now supports server-rendered category and mood browsing for published posts. Admin create and edit flows can assign or clear the optional mood value.
+The public homepage now supports Today's Moment with explicit per-date admin assignment and newest-published fallback.
 
 The next step is the next approved MVP milestone.
