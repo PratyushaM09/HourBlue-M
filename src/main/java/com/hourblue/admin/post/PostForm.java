@@ -3,6 +3,8 @@ package com.hourblue.admin.post;
 import java.net.URI;
 import java.util.Locale;
 
+import com.hourblue.post.Mood;
+
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -33,6 +35,8 @@ public class PostForm {
 
     @Size(max = 2048, message = "Source URL must be 2,048 characters or fewer.")
     private String sourceUrl;
+
+    private Mood mood;
 
     public Long getCategoryId() {
         return categoryId;
@@ -80,6 +84,14 @@ public class PostForm {
 
     public void setSourceUrl(String sourceUrl) {
         this.sourceUrl = sourceUrl;
+    }
+
+    public Mood getMood() {
+        return mood;
+    }
+
+    public void setMood(Mood mood) {
+        this.mood = mood;
     }
 
     public void normalize() {

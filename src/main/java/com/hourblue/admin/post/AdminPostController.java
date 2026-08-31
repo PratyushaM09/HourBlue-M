@@ -2,6 +2,7 @@ package com.hourblue.admin.post;
 
 import com.hourblue.category.CategoryRepository;
 import com.hourblue.image.ImageStorageException;
+import com.hourblue.post.Mood;
 import com.hourblue.post.Post;
 import com.hourblue.post.PostRepository;
 import com.hourblue.post.PostStatus;
@@ -162,6 +163,7 @@ public class AdminPostController {
 
     private void addFormAttributes(Model model, String action, boolean slugEditable, boolean imageRequired) {
         model.addAttribute("categories", categoryRepository.findAllByOrderByNameAsc());
+        model.addAttribute("moods", Mood.values());
         model.addAttribute("action", action);
         model.addAttribute("slugEditable", slugEditable);
         model.addAttribute("imageRequired", imageRequired);
@@ -175,6 +177,7 @@ public class AdminPostController {
         form.setDescription(post.getDescription());
         form.setAltText(post.getAltText());
         form.setSourceUrl(post.getSourceUrl());
+        form.setMood(post.getMood());
         return form;
     }
 

@@ -2,11 +2,15 @@ package com.hourblue.publicsite;
 
 import java.net.URI;
 
+import com.hourblue.category.Category;
+import com.hourblue.category.CategoryRepository;
+import com.hourblue.post.Mood;
 import com.hourblue.post.Post;
 import com.hourblue.post.PostRepository;
 import com.hourblue.post.PostStatus;
 
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,9 +23,11 @@ public class PublicPostController {
 
     private static final int PAGE_SIZE = 24;
 
+    private final CategoryRepository categoryRepository;
     private final PostRepository postRepository;
 
-    public PublicPostController(PostRepository postRepository) {
+    public PublicPostController(CategoryRepository categoryRepository, PostRepository postRepository) {
+        this.categoryRepository = categoryRepository;
         this.postRepository = postRepository;
     }
 
@@ -41,11 +47,57 @@ public class PublicPostController {
                 .orElseGet(() -> notFound(response));
     }
 
+    @GetMapping("/categories/{slug}")
+    String category(@PathVariable String slug, @RequestParam(defaultValue = "0") int page, Model model,
+            HttpServletResponse response) {
+        return categoryRepository.findBySlug(slug)
+                .map(category -> browseCategory(category, page, model))
+                .orElseGet(() -> notFound(response));
+    }
+
+    @GetMapping("/moods/{slug}")
+    String mood(@PathVariable String slug, @RequestParam(defaultValue = "0") int page, Model model,
+            HttpServletResponse response) {
+        return Mood.fromSlug(slug)
+                .map(mood -> browseMood(mood, page, model))
+                .orElseGet(() -> notFound(response));
+    }
+
     private String postView(Post post, Model model) {
         model.addAttribute("post", post);
         model.addAttribute("metaDescription", metaDescription(post.getDescription()));
         model.addAttribute("sourceUrlSafe", isHttpUrl(post.getSourceUrl()));
         return "public/post";
+    }
+
+    private String browseCategory(Category category, int page, Model model) {
+        Page<Post> posts = postRepository.findAllByCategoryAndStatusOrderByPublishedAtDesc(
+                category,
+                PostStatus.PUBLISHED,
+                pageRequest(page));
+        return browse(model, posts, "Category", category.getName(), "/categories/" + category.getSlug());
+    }
+
+    private String browseMood(Mood mood, int page, Model model) {
+        Page<Post> posts = postRepository.findAllByMoodAndStatusOrderByPublishedAtDesc(
+                mood,
+                PostStatus.PUBLISHED,
+                pageRequest(page));
+        return browse(model, posts, "Mood", mood.getDisplayName(), "/moods/" + mood.getSlug());
+    }
+
+    private String browse(Model model, Page<Post> posts, String browseType, String browseName, String path) {
+        model.addAttribute("posts", posts);
+        model.addAttribute("browseType", browseType);
+        model.addAttribute("browseName", browseName);
+        model.addAttribute("path", path);
+        model.addAttribute("previousPageUrl", posts.hasPrevious() ? path + "?page=" + (posts.getNumber() - 1) : null);
+        model.addAttribute("nextPageUrl", posts.hasNext() ? path + "?page=" + (posts.getNumber() + 1) : null);
+        return "public/browse";
+    }
+
+    private PageRequest pageRequest(int page) {
+        return PageRequest.of(Math.max(page, 0), PAGE_SIZE);
     }
 
     private String notFound(HttpServletResponse response) {

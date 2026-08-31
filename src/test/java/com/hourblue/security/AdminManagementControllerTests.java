@@ -3,6 +3,7 @@ package com.hourblue.security;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
@@ -31,6 +32,7 @@ import com.hourblue.admin.post.PostForm;
 import com.hourblue.category.Category;
 import com.hourblue.category.CategoryRepository;
 import com.hourblue.image.ImageStorageException;
+import com.hourblue.post.Mood;
 import com.hourblue.post.Post;
 import com.hourblue.post.PostRepository;
 
@@ -184,6 +186,8 @@ class AdminManagementControllerTests {
                 .andExpect(content().string(containsString("New post")))
                 .andExpect(content().string(containsString("Design")))
                 .andExpect(content().string(containsString("enctype=\"multipart/form-data\"")))
+                .andExpect(content().string(containsString("name=\"mood\"")))
+                .andExpect(content().string(containsString("Calm")))
                 .andExpect(content().string(containsString("name=\"_csrf\"")));
     }
 
@@ -198,6 +202,7 @@ class AdminManagementControllerTests {
                 .andExpect(content().string(containsString("Edit post")))
                 .andExpect(content().string(containsString("value=\"draft-post\"")))
                 .andExpect(content().string(containsString("https://cdn.example.com/image.jpg")))
+                .andExpect(content().string(containsString("Dreamy")))
                 .andExpect(content().string(containsString("/admin/posts/5/image")))
                 .andExpect(content().string(containsString("id=\"replacementImageFile\"")));
     }
@@ -227,13 +232,15 @@ class AdminManagementControllerTests {
                         .param("slug", "draft-post")
                         .param("description", "Draft description")
                         .param("altText", "Draft image")
-                        .param("sourceUrl", "https://example.com/source"))
+                        .param("sourceUrl", "https://example.com/source")
+                        .param("mood", "CALM"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/admin/posts"));
 
         ArgumentCaptor<PostForm> form = ArgumentCaptor.forClass(PostForm.class);
         verify(adminPostService).createDraft(form.capture(), any(MultipartFile.class));
         assertEquals("draft-post", form.getValue().getSlug());
+        assertEquals(Mood.CALM, form.getValue().getMood());
 
         doThrow(new ImageStorageException()).when(adminPostService).createDraft(any(), any());
         mockMvc.perform(multipart("/admin/posts")
@@ -278,13 +285,15 @@ class AdminManagementControllerTests {
                         .param("title", "Updated title")
                         .param("slug", "updated-post")
                         .param("description", "Updated description")
-                        .param("altText", "Updated image"))
+                        .param("altText", "Updated image")
+                        .param("mood", ""))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/admin/posts"));
 
         ArgumentCaptor<PostForm> form = ArgumentCaptor.forClass(PostForm.class);
         verify(adminPostService).updateMetadata(org.mockito.Mockito.eq(5L), form.capture());
         assertEquals("updated-post", form.getValue().getSlug());
+        assertNull(form.getValue().getMood());
 
         when(adminPostService.updateMetadata(org.mockito.Mockito.eq(5L), any())).thenThrow(new DuplicateSlugException());
         mockMvc.perform(post("/admin/posts/5")
@@ -390,7 +399,8 @@ class AdminManagementControllerTests {
                 "https://cdn.example.com/image.jpg",
                 "images/draft-post",
                 "Draft image",
-                null);
+                null,
+                Mood.DREAMY);
         ReflectionTestUtils.setField(post, "id", id);
         ReflectionTestUtils.setField(post, "createdAt", Instant.parse("2026-01-01T00:00:00Z"));
         return post;

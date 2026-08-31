@@ -4,7 +4,7 @@ HourBlue is a visual-discovery website being built as a server-rendered Spring B
 
 ## Status
 
-Milestones 1 through 5 are complete. Public visitors can browse published posts on the homepage and open individual published post pages.
+Milestones 1 through 6 are complete. Public visitors can browse published posts on the homepage, category pages, mood pages, and individual post pages.
 
 ## Implemented
 
@@ -22,7 +22,8 @@ Milestones 1 through 5 are complete. Public visitors can browse published posts 
 - Flyway
 - V1 content schema migration
 - V2 admin schema migration
-- `Category`, `Post`, and `PostStatus`
+- V3 post mood migration
+- `Category`, `Post`, `PostStatus`, and `Mood`
 - `CategoryRepository` and `PostRepository`
 - `Admin` and `AdminRepository`
 - BCrypt password hashing
@@ -34,6 +35,8 @@ Milestones 1 through 5 are complete. Public visitors can browse published posts 
 - Image upload validation for JPEG, PNG, and WebP files up to 5 MB
 - Image replacement for existing posts
 - Public homepage at `/`
+- Public category browsing at `/categories/{slug}`
+- Public mood browsing at `/moods/{slug}`
 - Public post detail pages at `/posts/{slug}`
 - Default Spring profile: `dev`
 - Application timezone configured from `APP_TIME_ZONE`, defaulting to `UTC`
@@ -108,8 +111,12 @@ The application starts without Cloudinary credentials, but media upload is unava
 ## Public Pages
 
 - `GET /` renders published posts only, newest published first, with fixed server-side pagination.
+- `GET /categories/{slug}` renders published posts in an existing category, newest published first.
+- `GET /moods/{slug}` renders published posts for a supported mood, newest published first.
 - `GET /posts/{slug}` renders a published post detail page.
 - Draft and archived posts are not exposed through public routes and return the same 404 page as missing posts.
+
+Moods are stored as nullable enum values: `CALM`, `DREAMY`, `COZY`, `ROMANTIC`, `ADVENTUROUS`, and `NOSTALGIC`.
 
 ## Health
 
@@ -134,8 +141,8 @@ src/main/java/com/hourblue/       Spring Boot application and configuration
 src/main/java/com/hourblue/admin/ Admin entity and repository
 src/main/java/com/hourblue/category/ Category entity and repository
 src/main/java/com/hourblue/image/ Cloudinary image-storage foundation
-src/main/java/com/hourblue/post/  Post entity, status enum, and repository
-src/main/java/com/hourblue/publicsite/ Public homepage and post detail controller
+src/main/java/com/hourblue/post/  Post entity, enums, and repository
+src/main/java/com/hourblue/publicsite/ Public browsing controller
 src/main/resources/application*.yml Base and test-profile configuration
 src/main/resources/db/migration/  Flyway migrations
 src/main/resources/static/css/ Public and admin stylesheets
@@ -145,8 +152,8 @@ pom.xml                           Maven project configuration
 mvnw, mvnw.cmd                    Maven Wrapper scripts
 ```
 
-## Milestone 5
+## Milestone 6
 
-The public website now renders only published content on server-rendered pages. The repository queries used by public pages fetch categories with the posts so rendering works with `spring.jpa.open-in-view=false`.
+The public website now supports server-rendered category and mood browsing for published posts. Admin create and edit flows can assign or clear the optional mood value.
 
-The next step is Milestone 6: mood and category browsing.
+The next step is the next approved MVP milestone.

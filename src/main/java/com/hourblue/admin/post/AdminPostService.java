@@ -66,7 +66,8 @@ public class AdminPostService {
                 uploaded.secureUrl(),
                 uploaded.publicId(),
                 normalized.getAltText(),
-                normalized.getSourceUrl());
+                normalized.getSourceUrl(),
+                normalized.getMood());
 
         try {
             return transactionTemplate.execute(status -> postRepository.save(draft));
@@ -104,7 +105,8 @@ public class AdminPostService {
                     normalized.getSlug(),
                     normalized.getDescription(),
                     normalized.getAltText(),
-                    normalized.getSourceUrl());
+                    normalized.getSourceUrl(),
+                    normalized.getMood());
 
             return post;
         });

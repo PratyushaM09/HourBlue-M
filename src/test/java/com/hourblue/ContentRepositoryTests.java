@@ -1,6 +1,7 @@
 package com.hourblue;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Instant;
@@ -8,6 +9,7 @@ import java.util.UUID;
 
 import com.hourblue.category.Category;
 import com.hourblue.category.CategoryRepository;
+import com.hourblue.post.Mood;
 import com.hourblue.post.Post;
 import com.hourblue.post.PostRepository;
 import com.hourblue.post.PostStatus;
@@ -115,14 +117,64 @@ class ContentRepositoryTests {
         postRepository.save(requestedPublished);
         postRepository.save(requestedDraft);
         postRepository.save(otherPublished);
+        entityManager.flush();
+        entityManager.clear();
 
-        Page<Post> page = postRepository.findAllByCategorySlugAndStatusOrderByPublishedAtDesc(
-                requested.getSlug(),
+        Page<Post> page = postRepository.findAllByCategoryAndStatusOrderByPublishedAtDesc(
+                requested,
                 PostStatus.PUBLISHED,
                 PageRequest.of(0, 10));
 
         assertEquals(1, page.getTotalElements());
         assertEquals(requestedPublished.getSlug(), page.getContent().get(0).getSlug());
+        assertTrue(isLoaded(page.getContent().get(0).getCategory()));
+    }
+
+    @Test
+    void moodCanBePersistedAndCanRemainNull() {
+        Category category = categoryRepository.save(category("Mood"));
+        Post withMood = post(category, "with-mood", Mood.CALM);
+        Post withoutMood = post(category, "without-mood");
+        postRepository.save(withMood);
+        postRepository.save(withoutMood);
+        entityManager.flush();
+        entityManager.clear();
+
+        assertEquals(Mood.CALM, postRepository.findById(withMood.getId()).orElseThrow().getMood());
+        assertNull(postRepository.findById(withoutMood.getId()).orElseThrow().getMood());
+    }
+
+    @Test
+    void publishedMoodListingExcludesOtherStatusesOrdersNewestFirstAndFetchesCategory() {
+        Category category = categoryRepository.save(category("Mood Listing"));
+        Post newest = post(category, "mood-newest", Mood.DREAMY);
+        newest.publish(Instant.parse("2099-01-03T00:00:00Z"));
+        Post oldest = post(category, "mood-oldest", Mood.DREAMY);
+        oldest.publish(Instant.parse("2099-01-01T00:00:00Z"));
+        Post draft = post(category, "mood-draft", Mood.DREAMY);
+        Post archived = post(category, "mood-archived", Mood.DREAMY);
+        archived.publish(Instant.parse("2099-01-04T00:00:00Z"));
+        archived.archive();
+        Post differentMood = post(category, "different-mood", Mood.COZY);
+        differentMood.publish(Instant.parse("2099-01-05T00:00:00Z"));
+        postRepository.save(newest);
+        postRepository.save(oldest);
+        postRepository.save(draft);
+        postRepository.save(archived);
+        postRepository.save(differentMood);
+        entityManager.flush();
+        entityManager.clear();
+
+        Page<Post> page = postRepository.findAllByMoodAndStatusOrderByPublishedAtDesc(
+                Mood.DREAMY,
+                PostStatus.PUBLISHED,
+                PageRequest.of(0, 10));
+
+        assertEquals(2, page.getTotalElements());
+        assertEquals(newest.getSlug(), page.getContent().get(0).getSlug());
+        assertEquals(oldest.getSlug(), page.getContent().get(1).getSlug());
+        assertTrue(isLoaded(page.getContent().get(0).getCategory()));
+        assertTrue(isLoaded(page.getContent().get(1).getCategory()));
     }
 
     @Test
@@ -162,6 +214,10 @@ class ContentRepositoryTests {
     }
 
     private Post post(Category category, String label) {
+        return post(category, label, null);
+    }
+
+    private Post post(Category category, String label, Mood mood) {
         String unique = unique();
         return new Post(
                 category,
@@ -169,7 +225,10 @@ class ContentRepositoryTests {
                 label + " title",
                 label + " description",
                 "https://example.com/" + unique + ".jpg",
-                label + " alt text");
+                null,
+                label + " alt text",
+                null,
+                mood);
     }
 
     private String unique() {

@@ -3,22 +3,23 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="HourBlue is a quiet visual-discovery gallery of curated published posts.">
-    <title>HourBlue</title>
+    <meta name="description" th:content="|Browse published HourBlue posts by ${#strings.toLowerCase(browseType)}.|" content="">
+    <title th:text="|${browseName} ${browseType} - HourBlue|">HourBlue</title>
     <link rel="stylesheet" th:href="@{/css/site.css}" href="/css/site.css">
 </head>
 <body>
     <main class="site-shell">
         <header class="intro">
             <p class="brand">HourBlue</p>
-            <h1>Visual discovery for calm inspiration.</h1>
-            <p>Browse published finds selected for image-first wandering and thoughtful detail.</p>
+            <a class="back-link" th:href="@{/}" href="/">Home</a>
+            <p class="browse-type" th:text="${browseType}"></p>
+            <h1 th:text="${browseName}"></h1>
         </header>
 
         <section aria-labelledby="gallery-title">
             <h2 id="gallery-title">Published Posts</h2>
 
-            <p class="empty" th:if="${posts.empty}">No published posts yet.</p>
+            <p class="empty" th:if="${posts.empty}">No published posts here yet.</p>
 
             <div class="gallery" th:if="${!posts.empty}">
                 <article class="post-card" th:each="post : ${posts.content}">
@@ -35,10 +36,10 @@
                 </article>
             </div>
 
-            <nav class="pagination" aria-label="Gallery pages" th:if="${posts.totalPages > 1}">
-                <a th:if="${posts.hasPrevious()}" th:href="@{/(page=${posts.number - 1})}">Previous</a>
+            <nav class="pagination" aria-label="Browse pages" th:if="${posts.totalPages > 1}">
+                <a th:if="${previousPageUrl}" th:href="${previousPageUrl}">Previous</a>
                 <span th:text="${posts.number + 1}"></span>
-                <a th:if="${posts.hasNext()}" th:href="@{/(page=${posts.number + 1})}">Next</a>
+                <a th:if="${nextPageUrl}" th:href="${nextPageUrl}">Next</a>
             </nav>
         </section>
     </main>

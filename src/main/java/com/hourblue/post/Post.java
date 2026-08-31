@@ -53,6 +53,10 @@ public class Post {
     private String sourceUrl;
 
     @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private Mood mood;
+
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private PostStatus status = PostStatus.DRAFT;
 
@@ -87,6 +91,19 @@ public class Post {
             String cloudinaryPublicId,
             String altText,
             String sourceUrl) {
+        this(category, slug, title, description, imageUrl, cloudinaryPublicId, altText, sourceUrl, null);
+    }
+
+    public Post(
+            Category category,
+            String slug,
+            String title,
+            String description,
+            String imageUrl,
+            String cloudinaryPublicId,
+            String altText,
+            String sourceUrl,
+            Mood mood) {
         this.category = Objects.requireNonNull(category);
         this.slug = Objects.requireNonNull(slug);
         this.title = Objects.requireNonNull(title);
@@ -95,6 +112,7 @@ public class Post {
         this.cloudinaryPublicId = cloudinaryPublicId;
         this.altText = Objects.requireNonNull(altText);
         this.sourceUrl = sourceUrl;
+        this.mood = mood;
     }
 
     public Long getId() {
@@ -131,6 +149,10 @@ public class Post {
 
     public String getSourceUrl() {
         return sourceUrl;
+    }
+
+    public Mood getMood() {
+        return mood;
     }
 
     public PostStatus getStatus() {
@@ -170,7 +192,8 @@ public class Post {
             String slug,
             String description,
             String altText,
-            String sourceUrl) {
+            String sourceUrl,
+            Mood mood) {
         if (category == null || title == null || slug == null || description == null || altText == null) {
             throw new IllegalArgumentException("Post metadata values are required.");
         }
@@ -183,6 +206,7 @@ public class Post {
         this.description = description;
         this.altText = altText;
         this.sourceUrl = sourceUrl;
+        this.mood = mood;
     }
 
     public void replaceImage(String imageUrl, String cloudinaryPublicId) {

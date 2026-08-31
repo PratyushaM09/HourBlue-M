@@ -27,6 +27,12 @@
                     <option th:each="category : ${categories}" th:value="${category.id}" th:text="${category.name}">Design</option>
                 </select>
 
+                <label for="mood">Mood</label>
+                <select id="mood" th:field="*{mood}">
+                    <option value="">No mood</option>
+                    <option th:each="mood : ${moods}" th:value="${mood}" th:text="${mood.displayName}">Calm</option>
+                </select>
+
                 <label for="title">Title</label>
                 <input id="title" th:field="*{title}" required maxlength="160">
 

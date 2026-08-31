@@ -17,6 +17,8 @@ import java.util.List;
 import java.util.Optional;
 
 import com.hourblue.category.Category;
+import com.hourblue.category.CategoryRepository;
+import com.hourblue.post.Mood;
 import com.hourblue.post.Post;
 import com.hourblue.post.PostRepository;
 import com.hourblue.post.PostStatus;
@@ -43,9 +45,12 @@ class PublicPostControllerTests {
     @MockitoBean
     private PostRepository postRepository;
 
+    @MockitoBean
+    private CategoryRepository categoryRepository;
+
     @Test
     void homepageIsPublicAndRendersPublishedCards() throws Exception {
-        Post post = publishedPost("published-post", "Published title", "https://cdn.example.com/post.jpg");
+        Post post = publishedPost("published-post", "Published title", "https://cdn.example.com/post.jpg", Mood.CALM);
         when(postRepository.findAllByStatusOrderByPublishedAtDesc(eq(PostStatus.PUBLISHED), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(post)));
 
@@ -56,6 +61,8 @@ class PublicPostControllerTests {
                 .andExpect(content().string(containsString("https://cdn.example.com/post.jpg")))
                 .andExpect(content().string(containsString("alt=\"Published title image\"")))
                 .andExpect(content().string(containsString("Design")))
+                .andExpect(content().string(containsString("/categories/design")))
+                .andExpect(content().string(containsString("/moods/calm")))
                 .andExpect(content().string(containsString("/posts/published-post")))
                 .andExpect(content().string(not(containsString("Draft title"))));
     }
@@ -101,7 +108,7 @@ class PublicPostControllerTests {
 
     @Test
     void publishedPostDetailIsPublicAndRendersFields() throws Exception {
-        Post post = publishedPost("published-post", "Published title", "https://cdn.example.com/post.jpg");
+        Post post = publishedPost("published-post", "Published title", "https://cdn.example.com/post.jpg", Mood.DREAMY);
         when(postRepository.findBySlugAndStatus("published-post", PostStatus.PUBLISHED)).thenReturn(Optional.of(post));
 
         mockMvc.perform(get("/posts/published-post"))
@@ -111,6 +118,8 @@ class PublicPostControllerTests {
                 .andExpect(content().string(containsString("https://cdn.example.com/post.jpg")))
                 .andExpect(content().string(containsString("alt=\"Published title image\"")))
                 .andExpect(content().string(containsString("Design")))
+                .andExpect(content().string(containsString("/categories/design")))
+                .andExpect(content().string(containsString("/moods/dreamy")))
                 .andExpect(content().string(containsString("2026-01-02T00:00:00Z")))
                 .andExpect(content().string(containsString("href=\"https://example.com/source\"")))
                 .andExpect(content().string(containsString("target=\"_blank\"")))
@@ -149,7 +158,174 @@ class PublicPostControllerTests {
                 .andExpect(status().isNotFound());
     }
 
+    @Test
+    void categoryBrowseIsPublicAndRendersReturnedPublishedPosts() throws Exception {
+        Category category = new Category("Design", "design", null);
+        Post post = publishedPost("category-post", "Category title", "https://cdn.example.com/category.jpg");
+        when(categoryRepository.findBySlug("design")).thenReturn(Optional.of(category));
+        when(postRepository.findAllByCategoryAndStatusOrderByPublishedAtDesc(
+                eq(category),
+                eq(PostStatus.PUBLISHED),
+                any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(post)));
+
+        mockMvc.perform(get("/categories/design"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Category")))
+                .andExpect(content().string(containsString("Design")))
+                .andExpect(content().string(containsString("Category title")))
+                .andExpect(content().string(containsString("https://cdn.example.com/category.jpg")))
+                .andExpect(content().string(containsString("alt=\"Category title image\"")))
+                .andExpect(content().string(containsString("/posts/category-post")))
+                .andExpect(content().string(not(containsString("Draft title"))));
+    }
+
+    @Test
+    void emptyCategoryBrowseRendersEmptyState() throws Exception {
+        Category category = new Category("Design", "design", null);
+        when(categoryRepository.findBySlug("design")).thenReturn(Optional.of(category));
+        when(postRepository.findAllByCategoryAndStatusOrderByPublishedAtDesc(
+                eq(category),
+                eq(PostStatus.PUBLISHED),
+                any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of()));
+
+        mockMvc.perform(get("/categories/design"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("No published posts here yet.")));
+    }
+
+    @Test
+    void missingCategoryBrowseReturnsNotFound() throws Exception {
+        when(categoryRepository.findBySlug("missing")).thenReturn(Optional.empty());
+
+        mockMvc.perform(get("/categories/missing"))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString("Page not found.")));
+    }
+
+    @Test
+    void categoryBrowseUsesFixedPaginationAndIgnoresClientSort() throws Exception {
+        Category category = new Category("Design", "design", null);
+        when(categoryRepository.findBySlug("design")).thenReturn(Optional.of(category));
+        when(postRepository.findAllByCategoryAndStatusOrderByPublishedAtDesc(
+                eq(category),
+                eq(PostStatus.PUBLISHED),
+                any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of()));
+
+        mockMvc.perform(get("/categories/design")
+                        .param("page", "-2")
+                        .param("sort", "title,asc"))
+                .andExpect(status().isOk());
+
+        ArgumentCaptor<Pageable> pageable = ArgumentCaptor.forClass(Pageable.class);
+        verify(postRepository).findAllByCategoryAndStatusOrderByPublishedAtDesc(
+                eq(category),
+                eq(PostStatus.PUBLISHED),
+                pageable.capture());
+        assertEquals(0, pageable.getValue().getPageNumber());
+        assertEquals(24, pageable.getValue().getPageSize());
+        assertFalse(pageable.getValue().getSort().isSorted());
+    }
+
+    @Test
+    void categoryBrowsePaginationLinksAreRendered() throws Exception {
+        Post post = publishedPost("category-page-post", "Category page title", "https://cdn.example.com/category-page.jpg");
+        Category category = new Category("Design", "design", null);
+        when(categoryRepository.findBySlug("design")).thenReturn(Optional.of(category));
+        when(postRepository.findAllByCategoryAndStatusOrderByPublishedAtDesc(
+                eq(category),
+                eq(PostStatus.PUBLISHED),
+                any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(post), PageRequest.of(1, 24), 50));
+
+        mockMvc.perform(get("/categories/design").param("page", "1"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("/categories/design?page=0")))
+                .andExpect(content().string(containsString("/categories/design?page=2")));
+    }
+
+    @Test
+    void moodBrowseIsPublicAndResolvesLowercaseSlug() throws Exception {
+        Post post = publishedPost("mood-post", "Mood title", "https://cdn.example.com/mood.jpg", Mood.CALM);
+        when(postRepository.findAllByMoodAndStatusOrderByPublishedAtDesc(
+                eq(Mood.CALM),
+                eq(PostStatus.PUBLISHED),
+                any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(post)));
+
+        mockMvc.perform(get("/moods/calm"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Mood")))
+                .andExpect(content().string(containsString("Calm")))
+                .andExpect(content().string(containsString("Mood title")))
+                .andExpect(content().string(containsString("/posts/mood-post")));
+    }
+
+    @Test
+    void emptyMoodBrowseRendersEmptyState() throws Exception {
+        when(postRepository.findAllByMoodAndStatusOrderByPublishedAtDesc(
+                eq(Mood.DREAMY),
+                eq(PostStatus.PUBLISHED),
+                any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of()));
+
+        mockMvc.perform(get("/moods/dreamy"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("No published posts here yet.")));
+    }
+
+    @Test
+    void invalidMoodBrowseReturnsNotFound() throws Exception {
+        mockMvc.perform(get("/moods/not-a-mood"))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(containsString("Page not found.")));
+    }
+
+    @Test
+    void moodBrowseUsesFixedPaginationAndIgnoresClientSort() throws Exception {
+        when(postRepository.findAllByMoodAndStatusOrderByPublishedAtDesc(
+                eq(Mood.COZY),
+                eq(PostStatus.PUBLISHED),
+                any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of()));
+
+        mockMvc.perform(get("/moods/cozy")
+                        .param("page", "-2")
+                        .param("sort", "title,asc"))
+                .andExpect(status().isOk());
+
+        ArgumentCaptor<Pageable> pageable = ArgumentCaptor.forClass(Pageable.class);
+        verify(postRepository).findAllByMoodAndStatusOrderByPublishedAtDesc(
+                eq(Mood.COZY),
+                eq(PostStatus.PUBLISHED),
+                pageable.capture());
+        assertEquals(0, pageable.getValue().getPageNumber());
+        assertEquals(24, pageable.getValue().getPageSize());
+        assertFalse(pageable.getValue().getSort().isSorted());
+    }
+
+    @Test
+    void moodBrowsePaginationLinksAreRendered() throws Exception {
+        Post post = publishedPost("mood-page-post", "Mood page title", "https://cdn.example.com/mood-page.jpg", Mood.COZY);
+        when(postRepository.findAllByMoodAndStatusOrderByPublishedAtDesc(
+                eq(Mood.COZY),
+                eq(PostStatus.PUBLISHED),
+                any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(post), PageRequest.of(1, 24), 50));
+
+        mockMvc.perform(get("/moods/cozy").param("page", "1"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("/moods/cozy?page=0")))
+                .andExpect(content().string(containsString("/moods/cozy?page=2")));
+    }
+
     private Post publishedPost(String slug, String title, String imageUrl) {
+        return publishedPost(slug, title, imageUrl, null);
+    }
+
+    private Post publishedPost(String slug, String title, String imageUrl, Mood mood) {
         Post post = new Post(
                 new Category("Design", "design", null),
                 slug,
@@ -158,7 +334,8 @@ class PublicPostControllerTests {
                 imageUrl,
                 "images/" + slug,
                 title + " image",
-                sourceUrl(slug));
+                sourceUrl(slug),
+                mood);
         post.publish(Instant.parse("2026-01-02T00:00:00Z"));
         return post;
     }

@@ -2,6 +2,8 @@ package com.hourblue.post;
 
 import java.util.Optional;
 
+import com.hourblue.category.Category;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -23,8 +25,12 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @EntityGraph(attributePaths = "category")
     Page<Post> findAllByStatusOrderByPublishedAtDesc(PostStatus status, Pageable pageable);
 
-    Page<Post> findAllByCategorySlugAndStatusOrderByPublishedAtDesc(
-            String categorySlug,
+    @EntityGraph(attributePaths = "category")
+    Page<Post> findAllByCategoryAndStatusOrderByPublishedAtDesc(
+            Category category,
             PostStatus status,
             Pageable pageable);
+
+    @EntityGraph(attributePaths = "category")
+    Page<Post> findAllByMoodAndStatusOrderByPublishedAtDesc(Mood mood, PostStatus status, Pageable pageable);
 }

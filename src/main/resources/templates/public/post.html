@@ -14,7 +14,10 @@
         <article class="post-detail">
             <header>
                 <p class="brand">HourBlue</p>
-                <p class="category" th:text="${post.category.name}"></p>
+                <p class="post-meta">
+                    <a th:href="@{/categories/{slug}(slug=${post.category.slug})}" th:text="${post.category.name}"></a>
+                    <a th:if="${post.mood != null}" th:href="@{/moods/{slug}(slug=${post.mood.slug})}" th:text="${post.mood.displayName}"></a>
+                </p>
                 <h1 th:text="${post.title}"></h1>
                 <time th:if="${post.publishedAt}" th:datetime="${post.publishedAt}" th:text="${post.publishedAt}"></time>
             </header>

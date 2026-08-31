@@ -3,6 +3,7 @@ package com.hourblue.admin.post;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -19,6 +20,7 @@ import com.hourblue.category.CategoryRepository;
 import com.hourblue.image.CloudinaryImageStorage;
 import com.hourblue.image.ImageStorageException;
 import com.hourblue.image.UploadedImage;
+import com.hourblue.post.Mood;
 import com.hourblue.post.Post;
 import com.hourblue.post.PostRepository;
 import com.hourblue.post.PostStatus;
@@ -62,6 +64,7 @@ class AdminPostServiceTests {
         form.setDescription("A thoughtful article.");
         form.setAltText("A preview image");
         form.setSourceUrl("https://example.com/article");
+        form.setMood(Mood.CALM);
         MultipartFile file = mock(MultipartFile.class);
         UploadedImage uploaded = new UploadedImage("https://cdn.example.com/images/hello-world.jpg", "images/hello-world");
 
@@ -78,7 +81,36 @@ class AdminPostServiceTests {
         assertEquals("hello-world", saved.getSlug());
         assertEquals("https://cdn.example.com/images/hello-world.jpg", saved.getImageUrl());
         assertEquals("images/hello-world", saved.getCloudinaryPublicId());
+        assertEquals(Mood.CALM, saved.getMood());
         assertEquals(PostStatus.DRAFT, saved.getStatus());
+    }
+
+    @Test
+    void draftUploadAllowsMissingMood() {
+        Category category = new Category("Design", "design", "Design");
+        PostForm form = new PostForm();
+        form.setCategoryId(10L);
+        form.setTitle("Hello world");
+        form.setSlug("hello-world");
+        form.setDescription("A thoughtful article.");
+        form.setAltText("A preview image");
+        MultipartFile file = mock(MultipartFile.class);
+        UploadedImage uploaded = new UploadedImage("https://cdn.example.com/images/hello-world.jpg", "images/hello-world");
+
+        when(categoryRepository.findById(10L)).thenReturn(Optional.of(category));
+        when(postRepository.findBySlug("hello-world")).thenReturn(Optional.empty());
+        when(storageProvider.getIfAvailable()).thenReturn(cloudinaryImageStorage);
+        when(cloudinaryImageStorage.upload(file)).thenReturn(uploaded);
+        when(postRepository.save(any(Post.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        AdminPostService service = new AdminPostService(
+                postRepository,
+                categoryRepository,
+                storageProvider,
+                mock(PlatformTransactionManager.class),
+                VALIDATOR);
+
+        assertNull(service.createDraft(form, file).getMood());
     }
 
     @Test
@@ -207,6 +239,7 @@ class AdminPostServiceTests {
         form.setDescription("Updated description");
         form.setAltText("Updated alt");
         form.setSourceUrl("https://example.com/post");
+        form.setMood(Mood.DREAMY);
 
         when(postRepository.findById(5L)).thenReturn(Optional.of(post));
         when(categoryRepository.findById(10L)).thenReturn(Optional.of(category));
@@ -216,10 +249,44 @@ class AdminPostServiceTests {
         Post updated = service.updateMetadata(5L, form);
 
         assertEquals("new-slug", updated.getSlug());
+        assertEquals(Mood.DREAMY, updated.getMood());
         assertEquals("https://cdn.example.com/old.jpg", updated.getImageUrl());
         assertEquals("public-old", updated.getCloudinaryPublicId());
         verify(cloudinaryImageStorage, never()).upload(any());
         verify(cloudinaryImageStorage, never()).delete(any());
+    }
+
+    @Test
+    void metadataEditCanClearMood() {
+        Category category = new Category("Design", "design", "Design");
+        Post post = new Post(
+                category,
+                "old-slug",
+                "Old title",
+                "Old description",
+                "https://cdn.example.com/old.jpg",
+                "public-old",
+                "Old alt",
+                null,
+                Mood.COZY);
+        PostForm form = new PostForm();
+        form.setCategoryId(10L);
+        form.setTitle("Updated title");
+        form.setSlug("old-slug");
+        form.setDescription("Updated description");
+        form.setAltText("Updated alt");
+
+        when(postRepository.findById(5L)).thenReturn(Optional.of(post));
+        when(categoryRepository.findById(10L)).thenReturn(Optional.of(category));
+
+        AdminPostService service = new AdminPostService(
+                postRepository,
+                categoryRepository,
+                storageProvider,
+                transactionTemplate(),
+                VALIDATOR);
+
+        assertNull(service.updateMetadata(5L, form).getMood());
     }
 
     @Test
@@ -244,6 +311,7 @@ class AdminPostServiceTests {
         assertEquals("Draft description", updated.getDescription());
         assertEquals("Alt text", updated.getAltText());
         assertEquals("https://example.com/source", updated.getSourceUrl());
+        assertNull(updated.getMood());
         assertEquals(PostStatus.DRAFT, updated.getStatus());
         verify(cloudinaryImageStorage).delete("public-old");
         verify(cloudinaryImageStorage, never()).delete("public-preliminary");
@@ -341,7 +409,16 @@ class AdminPostServiceTests {
     @Test
     void publishAndArchiveDoNotCallCloudinary() {
         Category category = new Category("Design", "design", "Design");
-        Post post = new Post(category, "draft-post", "Draft title", "Draft description", "https://cdn.example.com/image.jpg", "public-old", "Alt text", null);
+        Post post = new Post(
+                category,
+                "draft-post",
+                "Draft title",
+                "Draft description",
+                "https://cdn.example.com/image.jpg",
+                "public-old",
+                "Alt text",
+                null,
+                Mood.ROMANTIC);
 
         when(postRepository.findById(5L)).thenReturn(Optional.of(post));
         AdminPostService service = new AdminPostService(postRepository, categoryRepository, storageProvider, transactionTemplate(), VALIDATOR);
@@ -349,6 +426,7 @@ class AdminPostServiceTests {
         service.publish(5L);
         service.archive(5L);
 
+        assertEquals(Mood.ROMANTIC, post.getMood());
         verify(cloudinaryImageStorage, never()).upload(any());
         verify(cloudinaryImageStorage, never()).delete(any());
     }

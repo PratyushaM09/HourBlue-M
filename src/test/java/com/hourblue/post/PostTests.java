@@ -24,13 +24,15 @@ class PostTests {
                 "https://cdn.example.com/image.jpg",
                 "images/cloudinary-draft",
                 "Descriptive alt text",
-                "https://example.com/source");
+                "https://example.com/source",
+                Mood.CALM);
 
         assertEquals(PostStatus.DRAFT, post.getStatus());
         assertEquals("https://cdn.example.com/image.jpg", post.getImageUrl());
         assertEquals("images/cloudinary-draft", post.getCloudinaryPublicId());
         assertEquals("https://example.com/source", post.getSourceUrl());
         assertEquals("Descriptive alt text", post.getAltText());
+        assertEquals(Mood.CALM, post.getMood());
     }
 
     @Test
@@ -38,13 +40,21 @@ class PostTests {
         Category category = new Category("Design", "design", "Design");
         Post post = new Post(category, "old-slug", "Old title", "Old description", "https://cdn.example.com/image.jpg", "public-old", "Old alt", null);
 
-        post.updateMetadata(category, "New title", "new-slug", "New description", "New alt", "https://example.com/new");
+        post.updateMetadata(
+                category,
+                "New title",
+                "new-slug",
+                "New description",
+                "New alt",
+                "https://example.com/new",
+                Mood.DREAMY);
 
         assertEquals("new-slug", post.getSlug());
         assertEquals("New title", post.getTitle());
         assertEquals("New description", post.getDescription());
         assertEquals("New alt", post.getAltText());
         assertEquals("https://example.com/new", post.getSourceUrl());
+        assertEquals(Mood.DREAMY, post.getMood());
         assertEquals("https://cdn.example.com/image.jpg", post.getImageUrl());
         assertEquals("public-old", post.getCloudinaryPublicId());
     }
@@ -54,7 +64,14 @@ class PostTests {
         Category category = new Category("Design", "design", "Design");
         Post post = new Post(category, "old-slug", "Old title", "Old description", "https://cdn.example.com/image.jpg", "public-old", "Old alt", null);
 
-        assertDoesNotThrow(() -> post.updateMetadata(category, "Updated title", "new-slug", "Updated description", "Updated alt", null));
+        assertDoesNotThrow(() -> post.updateMetadata(
+                category,
+                "Updated title",
+                "new-slug",
+                "Updated description",
+                "Updated alt",
+                null,
+                null));
         assertEquals("new-slug", post.getSlug());
     }
 
@@ -65,7 +82,14 @@ class PostTests {
         post.publish(Instant.parse("2026-01-02T00:00:00Z"));
 
         IllegalStateException exception = assertThrows(IllegalStateException.class,
-                () -> post.updateMetadata(category, "Updated title", "new-slug", "Updated description", "Updated alt", null));
+                () -> post.updateMetadata(
+                        category,
+                        "Updated title",
+                        "new-slug",
+                        "Updated description",
+                        "Updated alt",
+                        null,
+                        null));
 
         assertEquals("Only draft posts can change slug.", exception.getMessage());
     }
@@ -76,8 +100,16 @@ class PostTests {
         Post post = new Post(category, "old-slug", "Old title", "Old description", "https://cdn.example.com/image.jpg", "public-old", "Old alt", null);
         post.publish(Instant.parse("2026-01-02T00:00:00Z"));
 
-        assertDoesNotThrow(() -> post.updateMetadata(category, "Updated title", "old-slug", "Updated description", "Updated alt", null));
+        assertDoesNotThrow(() -> post.updateMetadata(
+                category,
+                "Updated title",
+                "old-slug",
+                "Updated description",
+                "Updated alt",
+                null,
+                Mood.COZY));
         assertEquals("old-slug", post.getSlug());
+        assertEquals(Mood.COZY, post.getMood());
     }
 
     @Test
@@ -113,7 +145,16 @@ class PostTests {
     void replaceImageUpdatesOnlyImageFields() {
         Category category = new Category("Design", "design", "Design");
         Instant publishedAt = Instant.parse("2026-01-02T00:00:00Z");
-        Post post = new Post(category, "published-post", "Title", "Description", "https://cdn.example.com/old.jpg", "public-old", "Alt text", "https://example.com/source");
+        Post post = new Post(
+                category,
+                "published-post",
+                "Title",
+                "Description",
+                "https://cdn.example.com/old.jpg",
+                "public-old",
+                "Alt text",
+                "https://example.com/source",
+                Mood.NOSTALGIC);
         post.publish(publishedAt);
 
         post.replaceImage("https://cdn.example.com/new.jpg", "public-new");
@@ -124,6 +165,7 @@ class PostTests {
         assertEquals("Description", post.getDescription());
         assertEquals("Alt text", post.getAltText());
         assertEquals("https://example.com/source", post.getSourceUrl());
+        assertEquals(Mood.NOSTALGIC, post.getMood());
         assertEquals(PostStatus.PUBLISHED, post.getStatus());
         assertEquals(publishedAt, post.getPublishedAt());
         assertEquals("https://cdn.example.com/new.jpg", post.getImageUrl());

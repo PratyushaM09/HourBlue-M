@@ -78,11 +78,8 @@ h2 {
     background: #ffffff;
 }
 
-.post-card a {
+.image-link {
     display: block;
-    min-height: 100%;
-    color: inherit;
-    text-decoration: none;
 }
 
 .post-card img {
@@ -93,19 +90,43 @@ h2 {
     background: #e8e3d8;
 }
 
-.post-card span,
-.category {
-    display: block;
+.post-card-body {
+    padding: 16px;
+}
+
+.post-meta,
+.browse-type {
     margin: 16px 16px 8px;
     color: #7a5732;
     font-size: 0.85rem;
     font-weight: 700;
 }
 
+.post-card .post-meta,
 .post-card h3 {
-    margin: 0 16px 18px;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.post-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.post-meta a {
+    color: #7a5732;
+}
+
+.post-card h3 {
+    margin: 0;
     font-size: 1.05rem;
     line-height: 1.3;
+}
+
+.post-card h3 a {
+    color: inherit;
+    text-decoration: none;
 }
 
 .pagination {
