@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Categories - HourBlue</title>
+    <link rel="stylesheet" th:href="@{/css/admin.css}" href="/css/admin.css">
+</head>
+<body>
+    <main class="admin-shell">
+        <section class="panel wide" aria-labelledby="categories-title">
+            <p class="brand">HourBlue</p>
+            <nav class="admin-nav" aria-label="Admin">
+                <a th:href="@{/admin}" href="/admin">Admin</a>
+                <a th:href="@{/admin/posts}" href="/admin/posts">Posts</a>
+            </nav>
+
+            <h1 id="categories-title">Categories</h1>
+
+            <form th:action="@{/admin/categories}" th:object="${categoryForm}" action="/admin/categories" method="post">
+                <label for="name">Name</label>
+                <input id="name" th:field="*{name}" required aria-describedby="name-error">
+                <p class="message error" id="name-error" role="alert" th:if="${#fields.hasErrors('name')}" th:errors="*{name}">Name error</p>
+
+                <label for="slug">Slug</label>
+                <input id="slug" th:field="*{slug}" required aria-describedby="slug-error">
+                <p class="message error" id="slug-error" role="alert" th:if="${#fields.hasErrors('slug')}" th:errors="*{slug}">Slug error</p>
+
+                <label for="description">Description</label>
+                <textarea id="description" th:field="*{description}" rows="3" aria-describedby="description-error"></textarea>
+                <p class="message error" id="description-error" role="alert" th:if="${#fields.hasErrors('description')}" th:errors="*{description}">Description error</p>
+
+                <button type="submit">Create category</button>
+            </form>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th scope="col">Name</th>
+                        <th scope="col">Slug</th>
+                        <th scope="col">Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="category : ${categories}">
+                        <td th:text="${category.name}">Design</td>
+                        <td th:text="${category.slug}">design</td>
+                        <td th:text="${category.description ?: ''}"></td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(categories)}">
+                        <td colspan="3">No categories yet.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </main>
+</body>
+</html>

@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Post - HourBlue</title>
+    <link rel="stylesheet" th:href="@{/css/admin.css}" href="/css/admin.css">
+</head>
+<body>
+    <main class="admin-shell">
+        <section class="panel wide" aria-labelledby="post-title">
+            <p class="brand">HourBlue</p>
+            <nav class="admin-nav" aria-label="Admin">
+                <a th:href="@{/admin}" href="/admin">Admin</a>
+                <a th:href="@{/admin/posts}" href="/admin/posts">Posts</a>
+                <a th:href="@{/admin/categories}" href="/admin/categories">Categories</a>
+            </nav>
+
+            <h1 id="post-title" th:text="${imageRequired} ? 'New post' : 'Edit post'">Post</h1>
+
+            <p class="message error" role="alert" th:if="${errorMessage}" th:text="${errorMessage}">Post error</p>
+
+            <form th:action="@{${action}}" th:object="${postForm}" method="post" enctype="multipart/form-data">
+                <label for="categoryId">Category</label>
+                <select id="categoryId" th:field="*{categoryId}" required>
+                    <option value="">Select category</option>
+                    <option th:each="category : ${categories}" th:value="${category.id}" th:text="${category.name}">Design</option>
+                </select>
+
+                <label for="title">Title</label>
+                <input id="title" th:field="*{title}" required maxlength="160">
+
+                <label for="slug">Slug</label>
+                <input id="slug" th:field="*{slug}" required maxlength="160" th:readonly="${!slugEditable}">
+
+                <label for="description">Description</label>
+                <textarea id="description" th:field="*{description}" rows="8" required></textarea>
+
+                <label for="altText">Alt text</label>
+                <input id="altText" th:field="*{altText}" required maxlength="255">
+
+                <label for="sourceUrl">Source URL</label>
+                <input id="sourceUrl" th:field="*{sourceUrl}" type="url" maxlength="2048">
+
+                <div th:if="${imageRequired}">
+                    <label for="imageFile">Image</label>
+                    <input id="imageFile" name="imageFile" type="file" accept="image/jpeg,image/png,image/webp" required>
+                </div>
+
+                <button type="submit">Save post</button>
+            </form>
+        </section>
+    </main>
+</body>
+</html>

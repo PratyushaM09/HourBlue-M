@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Not found - HourBlue</title>
+    <link rel="stylesheet" th:href="@{/css/admin.css}" href="/css/admin.css">
+</head>
+<body>
+    <main class="admin-shell">
+        <section class="panel" aria-labelledby="not-found-title">
+            <p class="brand">HourBlue</p>
+            <h1 id="not-found-title">Not found</h1>
+            <p th:text="${message}">The requested item was not found.</p>
+            <p><a th:href="@{/admin/posts}" href="/admin/posts">Posts</a></p>
+        </section>
+    </main>
+</body>
+</html>

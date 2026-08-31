@@ -12,9 +12,12 @@
             <p class="brand">HourBlue</p>
             <h1 id="admin-title">HourBlue admin</h1>
             <p>Signed in as <strong th:text="${email}">admin@example.test</strong>.</p>
-            <p>Content management is the next feature.</p>
 
-            <button type="submit" class="secondary">Sign out</button>
+            <nav class="admin-nav" aria-label="Admin">
+                <a th:href="@{/admin/categories}" href="/admin/categories">Categories</a>
+                <a th:href="@{/admin/posts}" href="/admin/posts">Posts</a>
+            </nav>
+
             <form th:action="@{/admin/logout}" action="/admin/logout" method="post">
                 <button type="submit" class="secondary">Sign out</button>
             </form>

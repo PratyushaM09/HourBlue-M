@@ -29,6 +29,10 @@ body {
     background: #ffffff;
 }
 
+.wide {
+    width: min(100%, 1040px);
+}
+
 .brand {
     margin: 0 0 8px;
     color: #1a5d7a;
@@ -49,17 +53,36 @@ form {
     gap: 12px;
 }
 
+.admin-nav,
+.actions,
+.pagination {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+}
+
+.admin-nav {
+    margin-bottom: 24px;
+}
+
 label {
     font-weight: 700;
 }
 
-input {
+input,
+select,
+textarea {
     width: 100%;
     min-height: 44px;
     padding: 10px 12px;
     border: 1px solid #8aa2b0;
     border-radius: 6px;
     font: inherit;
+}
+
+textarea {
+    resize: vertical;
 }
 
 button {
@@ -74,11 +97,19 @@ button {
     cursor: pointer;
 }
 
+.small {
+    min-height: 36px;
+    padding: 8px 10px;
+}
+
 .secondary {
     background: #355263;
 }
 
 input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+a:focus-visible,
 button:focus-visible {
     outline: 3px solid #f0b84f;
     outline-offset: 2px;
@@ -97,4 +128,33 @@ button:focus-visible {
 .success {
     background: #e6f5ec;
     color: #145c33;
+}
+
+table {
+    width: 100%;
+    margin-top: 24px;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    padding: 10px;
+    border-bottom: 1px solid #d7e2e8;
+    text-align: left;
+    vertical-align: top;
+}
+
+th {
+    background: #f6fafc;
+}
+
+@media (max-width: 720px) {
+    .panel {
+        padding: 20px;
+    }
+
+    table {
+        display: block;
+        overflow-x: auto;
+    }
 }

@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Posts - HourBlue</title>
+    <link rel="stylesheet" th:href="@{/css/admin.css}" href="/css/admin.css">
+</head>
+<body>
+    <main class="admin-shell">
+        <section class="panel wide" aria-labelledby="posts-title">
+            <p class="brand">HourBlue</p>
+            <nav class="admin-nav" aria-label="Admin">
+                <a th:href="@{/admin}" href="/admin">Admin</a>
+                <a th:href="@{/admin/categories}" href="/admin/categories">Categories</a>
+                <a th:href="@{/admin/posts/new}" href="/admin/posts/new">New post</a>
+            </nav>
+
+            <h1 id="posts-title">Posts</h1>
+
+            <p class="message error" role="alert" th:if="${errorMessage}" th:text="${errorMessage}">Post error</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th scope="col">Title</th>
+                        <th scope="col">Slug</th>
+                        <th scope="col">Category</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Published</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="post : ${posts.content}">
+                        <td th:text="${post.title}">Draft title</td>
+                        <td th:text="${post.slug}">draft-title</td>
+                        <td th:text="${post.category.name}">Design</td>
+                        <td th:text="${post.status}">DRAFT</td>
+                        <td th:text="${post.publishedAt ?: ''}"></td>
+                        <td>
+                            <div class="actions">
+                                <a th:href="@{/admin/posts/{id}/edit(id=${post.id})}" href="/admin/posts/1/edit">Edit</a>
+                                <form th:if="${post.status.name() == 'DRAFT'}" th:action="@{/admin/posts/{id}/publish(id=${post.id})}" method="post">
+                                    <button type="submit" class="small">Publish</button>
+                                </form>
+                                <form th:if="${post.status.name() != 'ARCHIVED'}" th:action="@{/admin/posts/{id}/archive(id=${post.id})}" method="post">
+                                    <button type="submit" class="small secondary">Archive</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${posts.empty}">
+                        <td colspan="6">No posts yet.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <nav class="pagination" aria-label="Posts pages" th:if="${posts.totalPages > 1}">
+                <a th:if="${posts.hasPrevious()}" th:href="@{/admin/posts(page=${posts.number - 1})}" href="/admin/posts">Previous</a>
+                <span th:text="${posts.number + 1}">1</span>
+                <a th:if="${posts.hasNext()}" th:href="@{/admin/posts(page=${posts.number + 1})}" href="/admin/posts?page=1">Next</a>
+            </nav>
+        </section>
+    </main>
+</body>
+</html>
