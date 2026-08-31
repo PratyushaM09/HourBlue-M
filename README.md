@@ -4,7 +4,7 @@ HourBlue is a visual-discovery website being built as a server-rendered Spring B
 
 ## Status
 
-Milestone 1 is complete. Milestone 2 is complete. Milestone 3D adds a custom admin login page and protected admin landing page.
+Milestone 1 is complete. Milestone 2 is complete. Milestone 3D adds a custom admin login page and protected admin landing page. Milestone 4B adds Cloudinary configuration and image-storage foundation.
 
 ## Implemented
 
@@ -17,6 +17,7 @@ Milestone 1 is complete. Milestone 2 is complete. Milestone 3D adds a custom adm
 - Spring Data JPA
 - Spring Security
 - Thymeleaf
+- Cloudinary SDK foundation
 - MySQL Connector/J
 - Flyway
 - V1 content schema migration
@@ -29,6 +30,7 @@ Milestone 1 is complete. Milestone 2 is complete. Milestone 3D adds a custom adm
 - Initial admin bootstrap through environment variables
 - Custom admin login at `/admin/login`
 - Protected admin landing page at `/admin`
+- Image upload validation for JPEG, PNG, and WebP files up to 5 MB
 - Default Spring profile: `dev`
 - Application timezone configured from `APP_TIME_ZONE`, defaulting to `UTC`
 - MySQL datasource configuration for development and test profiles
@@ -38,7 +40,7 @@ Milestone 1 is complete. Milestone 2 is complete. Milestone 3D adds a custom adm
 The following technologies and architectural components are planned for the MVP and are not implemented yet:
 
 - Tailwind CLI
-- Cloudinary
+- Admin media management
 - Modular monolith architecture
 
 ## Prerequisites
@@ -90,8 +92,15 @@ Unix-like shells:
 | `ADMIN_BOOTSTRAP_EMAIL` | none | Optional first-admin email used only when no admin exists. | |
 | `ADMIN_BOOTSTRAP_PASSWORD` | none | Optional first-admin password used only when no admin exists. | |
 | `SESSION_COOKIE_SECURE` | `false` | Whether the session cookie requires HTTPS. | `true` |
+| `CLOUDINARY_CLOUD_NAME` | none | Cloudinary cloud name. Required for media upload. | |
+| `CLOUDINARY_API_KEY` | none | Cloudinary API key. Required for media upload. | |
+| `CLOUDINARY_API_SECRET` | none | Cloudinary API secret. Required for media upload and never committed. | |
+| `CLOUDINARY_FOLDER` | `hourblue/posts` | Cloudinary folder for post images. | `hourblue/posts` |
+| `MAX_IMAGE_SIZE` | `5MB` | Maximum individual image size. | `5MB` |
+| `MAX_UPLOAD_REQUEST_SIZE` | `6MB` | Maximum multipart request size. | `6MB` |
 
 Admin sign-in is available at `/admin/login`.
+The application starts without Cloudinary credentials, but media upload is un available until all Cloudinary credential variables are supplied. Admin media forms are not implemented yet.
 
 ## Health
 
@@ -115,6 +124,7 @@ Sensitive actuator endpoints such as `/actuator/env` are not exposed.
 src/main/java/com/hourblue/       Spring Boot application and configuration
 src/main/java/com/hourblue/admin/ Admin entity and repository
 src/main/java/com/hourblue/category/ Category entity and repository
+src/main/java/com/hourblue/image/ Cloudinary image-storage foundation
 src/main/java/com/hourblue/post/  Post entity, status enum, and repository
 src/main/resources/application*.yml Base and test-profile configuration
 src/main/resources/db/migration/  Flyway migrations
@@ -125,4 +135,4 @@ mvnw, mvnw.cmd                    Maven Wrapper scripts
 
 ## Next Step
 
-Next milestone: Cloudinary and admin media management.
+Next milestone: admin media-management workflow.
