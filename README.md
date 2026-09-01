@@ -4,7 +4,7 @@ HourBlue is a visual-discovery website being built as a server-rendered Spring B
 
 ## Status
 
-Milestones 1 through 7 are complete. Public visitors can browse published posts on the homepage, category pages, mood pages, and individual post pages.
+Milestones 1 through 8 are complete. Public visitors can browse published posts on the homepage, category pages, mood pages, and individual post pages, and can join the HourBlue mailing list.
 
 ## Implemented
 
@@ -25,8 +25,10 @@ Milestones 1 through 7 are complete. Public visitors can browse published posts 
 - V3 post mood migration
 - V4 Today's Moment schema migration
 - `Category`, `Post`, `PostStatus`, `Mood`, and `TodayMoment`
+- `Subscriber`
 - `CategoryRepository` and `PostRepository`
 - `TodayMomentRepository`
+- `SubscriberRepository`
 - `Admin` and `AdminRepository`
 - BCrypt password hashing
 - Admin authentication with server-side sessions
@@ -41,6 +43,8 @@ Milestones 1 through 7 are complete. Public visitors can browse published posts 
 - Public category browsing at `/categories/{slug}`
 - Public mood browsing at `/moods/{slug}`
 - Public post detail pages at `/posts/{slug}`
+- Public email subscription at `POST /subscribe`
+- Normalized unique subscriber emails
 - Default Spring profile: `dev`
 - Application timezone configured from `APP_TIME_ZONE`, defaulting to `UTC`
 - MySQL datasource configuration for development and test profiles
@@ -120,12 +124,15 @@ The current date is resolved with the configured application timezone from `APP_
 ## Public Pages
 
 - `GET /` renders published posts only, newest published first, with fixed server-side pagination.
+- `POST /subscribe` accepts a mailing-list email address, normalizes it, and redirects back to the homepage.
 - `GET /categories/{slug}` renders published posts in an existing category, newest published first.
 - `GET /moods/{slug}` renders published posts for a supported mood, newest published first.
 - `GET /posts/{slug}` renders a published post detail page.
 - Draft and archived posts are not exposed through public routes and return the same 404 page as missing posts.
 
 Moods are stored as nullable enum values: `CALM`, `DREAMY`, `COZY`, `ROMANTIC`, `ADVENTUROUS`, and `NOSTALGIC`.
+
+Subscriber email addresses are trimmed, lowercased with `Locale.ROOT`, and stored with a unique database constraint. Duplicate submissions return the same public success flow as first-time subscriptions. Email delivery is not implemented yet.
 
 ## Health
 
@@ -152,6 +159,7 @@ src/main/java/com/hourblue/category/ Category entity and repository
 src/main/java/com/hourblue/image/ Cloudinary image-storage foundation
 src/main/java/com/hourblue/post/  Post entity, enums, and repository
 src/main/java/com/hourblue/publicsite/ Public browsing controller
+src/main/java/com/hourblue/subscriber/ Subscriber entity, repository, service, and public form handler
 src/main/resources/application*.yml Base and test-profile configuration
 src/main/resources/db/migration/  Flyway migrations
 src/main/resources/static/css/ Public and admin stylesheets
@@ -161,8 +169,8 @@ pom.xml                           Maven project configuration
 mvnw, mvnw.cmd                    Maven Wrapper scripts
 ```
 
-## Milestone 7
+## Milestone 8
 
-The public homepage now supports Today's Moment with explicit per-date admin assignment and newest-published fallback.
+The public homepage now supports a minimal email subscription form with normalized, unique subscriber persistence and idempotent duplicate handling.
 
 The next step is the next approved MVP milestone.

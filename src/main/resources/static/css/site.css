@@ -86,6 +86,64 @@ h2 {
     background: #ffffff;
 }
 
+.subscribe {
+    margin-bottom: 40px;
+    padding: 24px 0;
+    border-top: 1px solid #ddd8ce;
+    border-bottom: 1px solid #ddd8ce;
+}
+
+.subscribe p {
+    color: #53645f;
+}
+
+.subscribe-form {
+    display: flex;
+    max-width: 520px;
+    gap: 12px;
+}
+
+.subscribe label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 700;
+}
+
+.subscribe input {
+    flex: 1;
+    min-width: 0;
+    padding: 12px;
+    border: 1px solid #bdb6aa;
+    border-radius: 6px;
+    font: inherit;
+}
+
+.subscribe button {
+    padding: 12px 16px;
+    border: 0;
+    border-radius: 6px;
+    background: #245b73;
+    color: #ffffff;
+    font: inherit;
+    font-weight: 700;
+}
+
+.notice {
+    max-width: 520px;
+    padding: 12px;
+    border-radius: 6px;
+}
+
+.notice.success {
+    background: #e7f2ec;
+    color: #23513e;
+}
+
+.notice.error {
+    background: #f8e7e2;
+    color: #7a2f1e;
+}
+
 .today-moment img {
     display: block;
     width: 100%;
@@ -196,5 +254,9 @@ h2 {
 
     .gallery {
         grid-template-columns: 1fr;
+    }
+
+    .subscribe-form {
+        flex-direction: column;
     }
 }

@@ -35,6 +35,7 @@ import com.hourblue.image.ImageStorageException;
 import com.hourblue.post.Mood;
 import com.hourblue.post.Post;
 import com.hourblue.post.PostRepository;
+import com.hourblue.subscriber.SubscriptionService;
 import com.hourblue.today.TodayMomentService;
 
 import org.junit.jupiter.api.Test;
@@ -68,6 +69,9 @@ class AdminManagementControllerTests {
 
     @MockitoBean
     private TodayMomentService todayMomentService;
+
+    @MockitoBean
+    private SubscriptionService subscriptionService;
 
     @Test
     void unauthenticatedAdminManagementRequestsRedirectToLogin() throws Exception {

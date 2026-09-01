@@ -15,6 +15,20 @@
             <p>Browse published finds selected for image-first wandering and thoughtful detail.</p>
         </header>
 
+        <section class="subscribe" aria-labelledby="subscribe-title">
+            <h2 id="subscribe-title">Join the HourBlue list</h2>
+            <p>Get occasional notes when new visual finds are ready.</p>
+            <p class="notice success" th:if="${subscriptionSuccessMessage}" th:text="${subscriptionSuccessMessage}"></p>
+            <p class="notice error" th:if="${subscriptionErrorMessage}" th:text="${subscriptionErrorMessage}"></p>
+            <form th:action="@{/subscribe}" th:object="${subscriptionForm}" method="post">
+                <label for="subscriptionEmail">Email</label>
+                <div class="subscribe-form">
+                    <input id="subscriptionEmail" type="email" th:field="*{email}" maxlength="320" autocomplete="email" required>
+                    <button type="submit">Subscribe</button>
+                </div>
+            </form>
+        </section>
+
         <section class="today-moment" aria-labelledby="today-moment-title" th:if="${todayMoment != null}">
             <p class="browse-type">Today's Moment</p>
             <a class="image-link" th:href="@{/posts/{slug}(slug=${todayMoment.slug})}">

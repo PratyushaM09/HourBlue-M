@@ -8,6 +8,7 @@ import com.hourblue.post.Mood;
 import com.hourblue.post.Post;
 import com.hourblue.post.PostRepository;
 import com.hourblue.post.PostStatus;
+import com.hourblue.subscriber.SubscriptionForm;
 import com.hourblue.today.TodayMomentService;
 
 import jakarta.servlet.http.HttpServletResponse;
@@ -40,6 +41,9 @@ public class PublicPostController {
     @GetMapping("/")
     String index(@RequestParam(defaultValue = "0") int page, Model model) {
         int pageNumber = Math.max(page, 0);
+        if (!model.containsAttribute("subscriptionForm")) {
+            model.addAttribute("subscriptionForm", new SubscriptionForm());
+        }
         model.addAttribute("posts", postRepository.findAllByStatusOrderByPublishedAtDesc(
                 PostStatus.PUBLISHED,
                 PageRequest.of(pageNumber, PAGE_SIZE)));
