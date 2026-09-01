@@ -12,12 +12,12 @@
             <p class="brand">HourBlue</p>
             <h1 id="login-title">Admin sign in</h1>
 
-           <p class="message error" role="alert" th:if="${param.error}">
-    Invalid email or password.
-</p>
-<p class="message success" role="status" th:if="${param.logout}">
-    You have been signed out.
-</p>
+            <p class="message error" role="alert" th:if="${param.error}">
+                Invalid email or password.
+            </p>
+            <p class="message success" role="status" th:if="${param.logout}">
+                You have been signed out.
+            </p>
             <form th:action="@{/admin/login}" action="/admin/login" method="post">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
 

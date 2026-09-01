@@ -23,7 +23,7 @@
             <div class="gallery" th:if="${!posts.empty}">
                 <article class="post-card" th:each="post : ${posts.content}">
                     <a class="image-link" th:href="@{/posts/{slug}(slug=${post.slug})}">
-                        <img th:src="${post.imageUrl}" th:alt="${post.altText}">
+                        <img th:src="${post.imageUrl}" th:alt="${post.altText}" loading="lazy">
                     </a>
                     <div class="post-card-body">
                         <p class="post-meta">

@@ -72,6 +72,7 @@ class PublicPostControllerTests {
                 .andExpect(content().string(containsString("Published title")))
                 .andExpect(content().string(containsString("https://cdn.example.com/post.jpg")))
                 .andExpect(content().string(containsString("alt=\"Published title image\"")))
+                .andExpect(content().string(containsString("loading=\"lazy\"")))
                 .andExpect(content().string(containsString("Design")))
                 .andExpect(content().string(containsString("/categories/design")))
                 .andExpect(content().string(containsString("/moods/calm")))
@@ -257,6 +258,7 @@ class PublicPostControllerTests {
                 .andExpect(content().string(containsString("Category title")))
                 .andExpect(content().string(containsString("https://cdn.example.com/category.jpg")))
                 .andExpect(content().string(containsString("alt=\"Category title image\"")))
+                .andExpect(content().string(containsString("loading=\"lazy\"")))
                 .andExpect(content().string(containsString("/posts/category-post")))
                 .andExpect(content().string(not(containsString("Draft title"))));
     }
@@ -345,6 +347,7 @@ class PublicPostControllerTests {
                 .andExpect(content().string(containsString("Mood")))
                 .andExpect(content().string(containsString("Calm")))
                 .andExpect(content().string(containsString("Mood title")))
+                .andExpect(content().string(containsString("loading=\"lazy\"")))
                 .andExpect(content().string(containsString("/posts/mood-post")));
     }
 
