@@ -29,3 +29,4 @@ server:
 
 hourblue:
   time-zone: ${APP_TIME_ZONE:UTC}
+  site-base-url: ${SITE_BASE_URL:http://localhost:8080}

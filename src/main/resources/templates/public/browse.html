@@ -3,8 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" th:content="|Browse published HourBlue posts by ${#strings.toLowerCase(browseType)}.|" content="">
-    <title th:text="|${browseName} ${browseType} - HourBlue|">HourBlue</title>
+    <th:block th:replace="~{fragments/seo :: tags(${seoTitle}, ${seoDescription}, ${canonicalUrl}, ${ogType}, ${ogImageUrl}, ${ogImageAlt})}"></th:block>
     <link rel="stylesheet" th:href="@{/css/site.css}" href="/css/site.css">
 </head>
 <body>

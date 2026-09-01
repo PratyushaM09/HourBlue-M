@@ -21,6 +21,7 @@ import com.hourblue.category.CategoryRepository;
 import com.hourblue.post.PostRepository;
 import com.hourblue.post.PostStatus;
 import com.hourblue.publicsite.PublicPostController;
+import com.hourblue.seo.SiteUrlBuilder;
 import com.hourblue.subscriber.Subscriber;
 import com.hourblue.subscriber.SubscriberRepository;
 import com.hourblue.subscriber.SubscriptionController;
@@ -44,7 +45,7 @@ import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 
 @WebMvcTest({PublicPostController.class, SubscriptionController.class})
-@Import({SecurityConfiguration.class, SubscriptionService.class})
+@Import({SecurityConfiguration.class, SiteUrlBuilder.class, SubscriptionService.class})
 class SubscriptionControllerTests {
 
     @Autowired

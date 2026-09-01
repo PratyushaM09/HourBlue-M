@@ -4,7 +4,7 @@ HourBlue is a visual-discovery website being built as a server-rendered Spring B
 
 ## Status
 
-Milestones 1 through 8 are complete. Public visitors can browse published posts on the homepage, category pages, mood pages, and individual post pages, and can join the HourBlue mailing list.
+Milestones 1 through 9 are complete. Public visitors can browse published posts on the homepage, category pages, mood pages, and individual post pages, and can join the HourBlue mailing list.
 
 ## Implemented
 
@@ -45,6 +45,7 @@ Milestones 1 through 8 are complete. Public visitors can browse published posts 
 - Public post detail pages at `/posts/{slug}`
 - Public email subscription at `POST /subscribe`
 - Normalized unique subscriber emails
+- Page-specific SEO metadata, canonical URLs, robots.txt, sitemap.xml, and JSON-LD on post detail pages
 - Default Spring profile: `dev`
 - Application timezone configured from `APP_TIME_ZONE`, defaulting to `UTC`
 - MySQL datasource configuration for development and test profiles
@@ -96,6 +97,7 @@ Unix-like shells:
 | --- | --- | --- | --- |
 | `SPRING_PROFILES_ACTIVE` | `dev` | Active Spring profile. | `dev` |
 | `APP_TIME_ZONE` | `UTC` | Application timezone. Must be a valid Java `ZoneId`. | `Asia/Kolkata` |
+| `SITE_BASE_URL` | `http://localhost:8080` | Public canonical base URL used for SEO metadata, robots.txt, and sitemap.xml. | `https://www.example.com` |
 | `DB_HOST` | `127.0.0.1` | MySQL host. | `127.0.0.1` |
 | `DB_PORT` | `3306` | MySQL port. | `3306` |
 | `DB_NAME` | `hourblue` | Development database name. | `hourblue` |
@@ -134,6 +136,8 @@ Moods are stored as nullable enum values: `CALM`, `DREAMY`, `COZY`, `ROMANTIC`, 
 
 Subscriber email addresses are trimmed, lowercased with `Locale.ROOT`, and stored with a unique database constraint. Duplicate submissions return the same public success flow as first-time subscriptions. Email delivery is not implemented yet.
 
+Public pages render page-specific titles, descriptions, canonical URLs, and Open Graph metadata. Post detail pages also include minimal Schema.org `ImageObject` JSON-LD. `GET /robots.txt` allows public crawling, disallows `/admin/`, and points to `GET /sitemap.xml`. The sitemap includes the homepage, categories, moods, and published post detail URLs only.
+
 ## Health
 
 Spring Boot Actuator exposes the health endpoint:
@@ -159,6 +163,7 @@ src/main/java/com/hourblue/category/ Category entity and repository
 src/main/java/com/hourblue/image/ Cloudinary image-storage foundation
 src/main/java/com/hourblue/post/  Post entity, enums, and repository
 src/main/java/com/hourblue/publicsite/ Public browsing controller
+src/main/java/com/hourblue/seo/ SEO URL builder, robots.txt, and sitemap.xml controller
 src/main/java/com/hourblue/subscriber/ Subscriber entity, repository, service, and public form handler
 src/main/resources/application*.yml Base and test-profile configuration
 src/main/resources/db/migration/  Flyway migrations
@@ -169,8 +174,8 @@ pom.xml                           Maven project configuration
 mvnw, mvnw.cmd                    Maven Wrapper scripts
 ```
 
-## Milestone 8
+## Milestone 9
 
-The public homepage now supports a minimal email subscription form with normalized, unique subscriber persistence and idempotent duplicate handling.
+Public pages now include page-specific SEO metadata, canonical URLs, Open Graph metadata, robots.txt, sitemap.xml, and post detail JSON-LD.
 
 The next step is the next approved MVP milestone.

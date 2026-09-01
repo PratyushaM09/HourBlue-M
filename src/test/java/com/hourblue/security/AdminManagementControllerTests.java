@@ -35,6 +35,7 @@ import com.hourblue.image.ImageStorageException;
 import com.hourblue.post.Mood;
 import com.hourblue.post.Post;
 import com.hourblue.post.PostRepository;
+import com.hourblue.seo.SiteUrlBuilder;
 import com.hourblue.subscriber.SubscriptionService;
 import com.hourblue.today.TodayMomentService;
 
@@ -72,6 +73,9 @@ class AdminManagementControllerTests {
 
     @MockitoBean
     private SubscriptionService subscriptionService;
+
+    @MockitoBean
+    private SiteUrlBuilder siteUrlBuilder;
 
     @Test
     void unauthenticatedAdminManagementRequestsRedirectToLogin() throws Exception {

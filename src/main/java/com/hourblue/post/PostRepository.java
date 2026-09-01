@@ -1,5 +1,6 @@
 package com.hourblue.post;
 
+import java.util.List;
 import java.util.Optional;
 
 import com.hourblue.category.Category;
@@ -28,6 +29,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @EntityGraph(attributePaths = "category")
     Optional<Post> findFirstByStatusOrderByPublishedAtDesc(PostStatus status);
 
+    List<SlugOnly> findAllProjectedByStatusOrderBySlugAsc(PostStatus status);
+
     @EntityGraph(attributePaths = "category")
     Page<Post> findAllByCategoryAndStatusOrderByPublishedAtDesc(
             Category category,
@@ -36,4 +39,9 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     @EntityGraph(attributePaths = "category")
     Page<Post> findAllByMoodAndStatusOrderByPublishedAtDesc(Mood mood, PostStatus status, Pageable pageable);
+
+    interface SlugOnly {
+
+        String getSlug();
+    }
 }

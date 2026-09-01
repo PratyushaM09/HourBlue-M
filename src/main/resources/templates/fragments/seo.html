@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:fragment="tags(title, description, canonicalUrl, ogType, ogImageUrl, ogImageAlt)">
+        <title th:text="${title}">HourBlue</title>
+        <meta name="description" th:content="${description}" content="">
+        <link rel="canonical" th:href="${canonicalUrl}" href="">
+        <meta property="og:title" th:content="${title}" content="">
+        <meta property="og:description" th:content="${description}" content="">
+        <meta property="og:type" th:content="${ogType}" content="">
+        <meta property="og:url" th:content="${canonicalUrl}" content="">
+        <meta property="og:image" th:if="${ogImageUrl != null}" th:content="${ogImageUrl}" content="">
+        <meta property="og:image:alt" th:if="${ogImageAlt != null}" th:content="${ogImageAlt}" content="">
+    </th:block>
+</head>
+</html>

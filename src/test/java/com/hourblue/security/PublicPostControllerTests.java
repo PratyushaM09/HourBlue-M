@@ -23,6 +23,7 @@ import com.hourblue.post.Post;
 import com.hourblue.post.PostRepository;
 import com.hourblue.post.PostStatus;
 import com.hourblue.publicsite.PublicPostController;
+import com.hourblue.seo.SiteUrlBuilder;
 import com.hourblue.today.TodayMomentService;
 
 import org.junit.jupiter.api.Test;
@@ -33,11 +34,13 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(PublicPostController.class)
-@Import(SecurityConfiguration.class)
+@Import({SecurityConfiguration.class, SiteUrlBuilder.class})
+@TestPropertySource(properties = "hourblue.site-base-url=https://hourblue.example")
 class PublicPostControllerTests {
 
     @Autowired
@@ -61,7 +64,11 @@ class PublicPostControllerTests {
 
         mockMvc.perform(get("/"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("HourBlue")))
+                .andExpect(content().string(containsString("<title>HourBlue - Visual Finds for Quiet Wandering</title>")))
+                .andExpect(content().string(containsString("name=\"description\" content=\"HourBlue is a quiet visual-discovery gallery of curated published posts.\"")))
+                .andExpect(content().string(containsString("rel=\"canonical\" href=\"https://hourblue.example/\"")))
+                .andExpect(content().string(containsString("property=\"og:title\" content=\"HourBlue - Visual Finds for Quiet Wandering\"")))
+                .andExpect(content().string(containsString("property=\"og:url\" content=\"https://hourblue.example/\"")))
                 .andExpect(content().string(containsString("Published title")))
                 .andExpect(content().string(containsString("https://cdn.example.com/post.jpg")))
                 .andExpect(content().string(containsString("alt=\"Published title image\"")))
@@ -92,7 +99,9 @@ class PublicPostControllerTests {
         mockMvc.perform(get("/")
                         .param("page", "-2")
                         .param("sort", "title,asc"))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("rel=\"canonical\" href=\"https://hourblue.example/\"")))
+                .andExpect(content().string(not(containsString("title,asc"))));
 
         ArgumentCaptor<Pageable> pageable = ArgumentCaptor.forClass(Pageable.class);
         verify(postRepository).findAllByStatusOrderByPublishedAtDesc(eq(PostStatus.PUBLISHED), pageable.capture());
@@ -110,6 +119,7 @@ class PublicPostControllerTests {
 
         mockMvc.perform(get("/").param("page", "1"))
                 .andExpect(status().isOk())
+                .andExpect(content().string(containsString("rel=\"canonical\" href=\"https://hourblue.example/?page=1\"")))
                 .andExpect(content().string(containsString("/?page=0")))
                 .andExpect(content().string(containsString("/?page=2")));
     }
@@ -153,7 +163,12 @@ class PublicPostControllerTests {
         mockMvc.perform(get("/posts/published-post"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Published title - HourBlue")))
+                .andExpect(content().string(containsString("rel=\"canonical\" href=\"https://hourblue.example/posts/published-post\"")))
+                .andExpect(content().string(containsString("property=\"og:type\" content=\"article\"")))
+                .andExpect(content().string(containsString("property=\"og:image\" content=\"https://cdn.example.com/post.jpg\"")))
+                .andExpect(content().string(containsString("property=\"og:image:alt\" content=\"Published title image\"")))
                 .andExpect(content().string(containsString("Published title description")))
+                .andExpect(content().string(containsString("\"url\":\"https://hourblue.example/posts/published-post\"")))
                 .andExpect(content().string(containsString("https://cdn.example.com/post.jpg")))
                 .andExpect(content().string(containsString("alt=\"Published title image\"")))
                 .andExpect(content().string(containsString("Design")))
@@ -165,6 +180,30 @@ class PublicPostControllerTests {
                 .andExpect(content().string(containsString("rel=\"noopener noreferrer\"")));
 
         verify(postRepository).findBySlugAndStatus("published-post", PostStatus.PUBLISHED);
+    }
+
+    @Test
+    void postDetailUsesFallbackDescriptionAndSafeStructuredData() throws Exception {
+        Post blankDescription = publishedPost("blank-description", "Blank title", " ", "https://cdn.example.com/blank.jpg");
+        Post special = publishedPost(
+                "special-post",
+                "Quiet \"Blue\" & <Find>",
+                "A \"quoted\" & <bright> caf\u00e9 note.",
+                "https://cdn.example.com/special.jpg");
+        when(postRepository.findBySlugAndStatus("blank-description", PostStatus.PUBLISHED))
+                .thenReturn(Optional.of(blankDescription));
+        when(postRepository.findBySlugAndStatus("special-post", PostStatus.PUBLISHED)).thenReturn(Optional.of(special));
+
+        mockMvc.perform(get("/posts/blank-description"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Browse Blank title in Design on HourBlue.")))
+                .andExpect(content().string(containsString("\"url\":\"https://hourblue.example/posts/blank-description\"")));
+
+        mockMvc.perform(get("/posts/special-post"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("\"name\":\"Quiet \\\"Blue\\\" \\u0026 \\u003cFind\\u003e\"")))
+                .andExpect(content().string(containsString("\"description\":\"A \\\"quoted\\\" \\u0026 \\u003cbright\\u003e caf\u00e9 note.\"")))
+                .andExpect(content().string(not(containsString("<Find>"))));
     }
 
     @Test
@@ -210,6 +249,9 @@ class PublicPostControllerTests {
 
         mockMvc.perform(get("/categories/design"))
                 .andExpect(status().isOk())
+                .andExpect(content().string(containsString("<title>Design - HourBlue</title>")))
+                .andExpect(content().string(containsString("rel=\"canonical\" href=\"https://hourblue.example/categories/design\"")))
+                .andExpect(content().string(containsString("property=\"og:url\" content=\"https://hourblue.example/categories/design\"")))
                 .andExpect(content().string(containsString("Category")))
                 .andExpect(content().string(containsString("Design")))
                 .andExpect(content().string(containsString("Category title")))
@@ -281,6 +323,7 @@ class PublicPostControllerTests {
 
         mockMvc.perform(get("/categories/design").param("page", "1"))
                 .andExpect(status().isOk())
+                .andExpect(content().string(containsString("rel=\"canonical\" href=\"https://hourblue.example/categories/design?page=1\"")))
                 .andExpect(content().string(containsString("/categories/design?page=0")))
                 .andExpect(content().string(containsString("/categories/design?page=2")));
     }
@@ -296,6 +339,9 @@ class PublicPostControllerTests {
 
         mockMvc.perform(get("/moods/calm"))
                 .andExpect(status().isOk())
+                .andExpect(content().string(containsString("<title>Calm - HourBlue</title>")))
+                .andExpect(content().string(containsString("rel=\"canonical\" href=\"https://hourblue.example/moods/calm\"")))
+                .andExpect(content().string(containsString("property=\"og:url\" content=\"https://hourblue.example/moods/calm\"")))
                 .andExpect(content().string(containsString("Mood")))
                 .andExpect(content().string(containsString("Calm")))
                 .andExpect(content().string(containsString("Mood title")))
@@ -356,20 +402,29 @@ class PublicPostControllerTests {
 
         mockMvc.perform(get("/moods/cozy").param("page", "1"))
                 .andExpect(status().isOk())
+                .andExpect(content().string(containsString("rel=\"canonical\" href=\"https://hourblue.example/moods/cozy?page=1\"")))
                 .andExpect(content().string(containsString("/moods/cozy?page=0")))
                 .andExpect(content().string(containsString("/moods/cozy?page=2")));
     }
 
     private Post publishedPost(String slug, String title, String imageUrl) {
-        return publishedPost(slug, title, imageUrl, null);
+        return publishedPost(slug, title, imageUrl, (Mood) null);
     }
 
     private Post publishedPost(String slug, String title, String imageUrl, Mood mood) {
+        return publishedPost(slug, title, title + " description", imageUrl, mood);
+    }
+
+    private Post publishedPost(String slug, String title, String description, String imageUrl) {
+        return publishedPost(slug, title, description, imageUrl, (Mood) null);
+    }
+
+    private Post publishedPost(String slug, String title, String description, String imageUrl, Mood mood) {
         Post post = new Post(
                 new Category("Design", "design", null),
                 slug,
                 title,
-                title + " description",
+                description,
                 imageUrl,
                 "images/" + slug,
                 title + " image",
