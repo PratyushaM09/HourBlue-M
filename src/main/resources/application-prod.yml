@@ -1,0 +1,26 @@
+spring:
+  datasource:
+    url: jdbc:mysql://${DB_HOST}:${DB_PORT:3306}/${DB_NAME}?sslMode=${DB_SSL_MODE:REQUIRED}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  web:
+    resources:
+      cache:
+        cachecontrol:
+          max-age: 7d
+          cache-public: true
+
+server:
+  port: ${PORT:8080}
+  error:
+    include-exception: false
+    include-message: never
+    include-binding-errors: never
+    include-stacktrace: never
+  servlet:
+    session:
+      cookie:
+        secure: ${SESSION_COOKIE_SECURE:true}
+
+hourblue:
+  site-base-url: ${SITE_BASE_URL}

@@ -10,6 +10,7 @@ import static org.springframework.security.test.web.servlet.response.SecurityMoc
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -187,6 +188,17 @@ class SecurityIntegrationTests {
         mockMvc.perform(get("/public-test"))
                 .andExpect(status().isOk())
                 .andExpect(content().string("public"));
+    }
+
+    @Test
+    void publicResponsesIncludeSecurityHeaders() throws Exception {
+        mockMvc.perform(get("/public-test"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("X-Content-Type-Options", "nosniff"))
+                .andExpect(header().string("X-Frame-Options", "DENY"))
+                .andExpect(header().string("Referrer-Policy", "strict-origin-when-cross-origin"))
+                .andExpect(header().string("Content-Security-Policy", SecurityConfiguration.CONTENT_SECURITY_POLICY))
+                .andExpect(header().string("Permissions-Policy", SecurityConfiguration.PERMISSIONS_POLICY));
     }
 
     @Test

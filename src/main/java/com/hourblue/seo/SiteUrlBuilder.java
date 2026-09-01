@@ -1,5 +1,7 @@
 package com.hourblue.seo;
 
+import java.net.URI;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -27,6 +29,14 @@ public class SiteUrlBuilder {
         String normalized = value == null || value.isBlank() ? DEFAULT_BASE_URL : value.strip();
         while (normalized.endsWith("/")) {
             normalized = normalized.substring(0, normalized.length() - 1);
+        }
+        URI uri = URI.create(normalized);
+        String scheme = uri.getScheme();
+        if (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme)) {
+            throw new IllegalArgumentException("SITE_BASE_URL must be an absolute HTTP or HTTPS URL.");
+        }
+        if (uri.getHost() == null || uri.getHost().isBlank()) {
+            throw new IllegalArgumentException("SITE_BASE_URL must include a host.");
         }
         return normalized;
     }
