@@ -8,6 +8,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.authenticated;
 import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.unauthenticated;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -27,11 +28,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -92,6 +95,29 @@ class SecurityIntegrationTests {
     }
 
     @Test
+    void directAnonymousAdminRouteGuessesRedirectToLogin() throws Exception {
+        MockMultipartFile image = new MockMultipartFile(
+                "imageFile",
+                "post.jpg",
+                "image/jpeg",
+                new byte[] {1});
+
+        assertRedirectsToLogin(get("/admin"));
+        assertRedirectsToLogin(get("/admin/categories"));
+        assertRedirectsToLogin(post("/admin/categories").with(csrf()));
+        assertRedirectsToLogin(get("/admin/posts"));
+        assertRedirectsToLogin(get("/admin/posts/new"));
+        assertRedirectsToLogin(multipart("/admin/posts").file(image).with(csrf()));
+        assertRedirectsToLogin(get("/admin/posts/5/edit"));
+        assertRedirectsToLogin(post("/admin/posts/5").with(csrf()));
+        assertRedirectsToLogin(post("/admin/posts/5/publish").with(csrf()));
+        assertRedirectsToLogin(post("/admin/posts/5/archive").with(csrf()));
+        assertRedirectsToLogin(multipart("/admin/posts/5/image").file(image).with(csrf()));
+        assertRedirectsToLogin(get("/admin/today"));
+        assertRedirectsToLogin(post("/admin/today").with(csrf()));
+    }
+
+    @Test
     void successfulFormLoginCreatesAuthenticatedAccess() throws Exception {
         Credentials admin = admin();
 
@@ -115,11 +141,12 @@ class SecurityIntegrationTests {
     }
 
     @Test
-    void failedFormLoginRedirectsToError() throws Exception {
-        mockMvc.perform(formLogin("/admin/login").user(email()).password("wrong-test-password"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/admin/login?error"))
-                .andExpect(unauthenticated());
+    void failedFormLoginDoesNotRevealKnownUnknownOrMalformedAdmin() throws Exception {
+        Credentials admin = admin();
+
+        assertLoginFailsGenerically(admin.email(), "wrong-test-password");
+        assertLoginFailsGenerically(email(), "wrong-test-password");
+        assertLoginFailsGenerically("not-an-email", "wrong-test-password");
     }
 
     @Test
@@ -241,6 +268,24 @@ class SecurityIntegrationTests {
 
     private MockHttpSession session(MvcResult result) {
         return (MockHttpSession) result.getRequest().getSession();
+    }
+
+    private void assertRedirectsToLogin(RequestBuilder request) throws Exception {
+        mockMvc.perform(request)
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrlPattern("**/admin/login"));
+    }
+
+    private void assertLoginFailsGenerically(String email, String password) throws Exception {
+        mockMvc.perform(formLogin("/admin/login").user(email).password(password))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/login?error"))
+                .andExpect(unauthenticated());
+
+        mockMvc.perform(get("/admin/login?error"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Invalid email or password.")))
+                .andExpect(content().string(not(containsString(email))));
     }
 
     private record Credentials(String email, String password) {

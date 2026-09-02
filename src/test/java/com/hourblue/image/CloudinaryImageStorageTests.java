@@ -93,6 +93,56 @@ class CloudinaryImageStorageTests {
     }
 
     @Test
+    void nonHttpsUploadResponseUrlIsRejected() throws Exception {
+        Cloudinary cloudinary = mock(Cloudinary.class);
+        Uploader uploader = mock(Uploader.class);
+        when(cloudinary.uploader()).thenReturn(uploader);
+        when(uploader.upload(any(), anyMap())).thenReturn(Map.of(
+                "secure_url", "http://res.cloudinary.example/image.jpg",
+                "public_id", "hourblue/posts/image"));
+
+        assertThrows(
+                ImageStorageException.class,
+                () -> new CloudinaryImageStorage(cloudinary, "hourblue/posts", 5_000_000)
+                        .upload(file(0xff, 0xd8, 0xff)));
+    }
+
+    @Test
+    void uploadResponseUrlWithUserInfoIsRejected() throws Exception {
+        Cloudinary cloudinary = mock(Cloudinary.class);
+        Uploader uploader = mock(Uploader.class);
+        when(cloudinary.uploader()).thenReturn(uploader);
+        when(uploader.upload(any(), anyMap())).thenReturn(Map.of(
+                "secure_url", "https://user:password@res.cloudinary.example/image.jpg",
+                "public_id", "hourblue/posts/image"));
+
+        assertThrows(
+                ImageStorageException.class,
+                () -> new CloudinaryImageStorage(cloudinary, "hourblue/posts", 5_000_000)
+                        .upload(file(0xff, 0xd8, 0xff)));
+    }
+
+    @Test
+    void hostileUploadResponseValuesAreRejected() throws Exception {
+        assertUploadResponseRejected(Map.of(
+                "secure_url", "https://exa mple.test/image.jpg",
+                "public_id", "hourblue/posts/image"));
+        assertUploadResponseRejected(Map.of(
+                "secure_url", "https:///image.jpg",
+                "public_id", "hourblue/posts/image"));
+        assertUploadResponseRejected(Map.of(
+                "secure_url", 123,
+                "public_id", "hourblue/posts/image"));
+        assertUploadResponseRejected(Map.of(
+                "secure_url", "https://res.cloudinary.example/image.jpg",
+                "public_id", " "));
+        assertUploadResponseRejected(Map.of(
+                "secure_url", "https://res.cloudinary.example/image.jpg",
+                "public_id", 123));
+        assertUploadResponseRejected(Map.of("public_id", "hourblue/posts/image"));
+    }
+
+    @Test
     void uploadFailureIsWrappedSafely() throws Exception {
         Cloudinary cloudinary = mock(Cloudinary.class);
         Uploader uploader = mock(Uploader.class);
@@ -164,6 +214,18 @@ class CloudinaryImageStorageTests {
         new CloudinaryImageStorage(cloudinary, "hourblue/posts", 5_000_000).upload(file);
 
         verify(uploader).upload(any(), anyMap());
+    }
+
+    private void assertUploadResponseRejected(Map<?, ?> response) throws Exception {
+        Cloudinary cloudinary = mock(Cloudinary.class);
+        Uploader uploader = mock(Uploader.class);
+        when(cloudinary.uploader()).thenReturn(uploader);
+        when(uploader.upload(any(), anyMap())).thenReturn(response);
+
+        assertThrows(
+                ImageStorageException.class,
+                () -> new CloudinaryImageStorage(cloudinary, "hourblue/posts", 5_000_000)
+                        .upload(file(0xff, 0xd8, 0xff)));
     }
 
     private void assertDeleteSucceeds(String result) throws Exception {

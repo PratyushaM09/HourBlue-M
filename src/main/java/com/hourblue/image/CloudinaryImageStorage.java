@@ -2,6 +2,7 @@ package com.hourblue.image;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -37,7 +38,7 @@ public class CloudinaryImageStorage {
 
             Object secureUrl = response.get("secure_url");
             Object publicId = response.get("public_id");
-            if (!(secureUrl instanceof String secureUrlText) || isBlank(secureUrlText)
+            if (!(secureUrl instanceof String secureUrlText) || !isHttpsUrl(secureUrlText)
                     || !(publicId instanceof String publicIdText) || isBlank(publicIdText)) {
                 throw new ImageStorageException();
             }
@@ -121,5 +122,20 @@ public class CloudinaryImageStorage {
 
     private boolean isBlank(String value) {
         return value == null || value.isBlank();
+    }
+
+    private boolean isHttpsUrl(String value) {
+        if (isBlank(value)) {
+            return false;
+        }
+        try {
+            URI uri = URI.create(value);
+            return "https".equalsIgnoreCase(uri.getScheme())
+                    && uri.getHost() != null
+                    && !uri.getHost().isBlank()
+                    && uri.getUserInfo() == null;
+        } catch (IllegalArgumentException exception) {
+            return false;
+        }
     }
 }

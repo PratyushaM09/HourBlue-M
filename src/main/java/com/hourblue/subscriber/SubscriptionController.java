@@ -32,7 +32,6 @@ public class SubscriptionController {
         validate(form, bindingResult);
 
         if (bindingResult.hasErrors()) {
-            redirectAttributes.addFlashAttribute("subscriptionForm", form);
             redirectAttributes.addFlashAttribute(
                     "subscriptionErrorMessage",
                     bindingResult.getAllErrors().get(0).getDefaultMessage());

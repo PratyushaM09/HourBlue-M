@@ -100,6 +100,26 @@ class SubscriptionControllerTests {
     }
 
     @Test
+    void existingSubscriptionUsesSameSuccessUx() throws Exception {
+        when(subscriberRepository.existsByEmail("visitor@example.test")).thenReturn(true);
+
+        MvcResult result = mockMvc.perform(post("/subscribe")
+                        .with(csrf())
+                        .param("email", "  Visitor@Example.TEST  "))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/"))
+                .andExpect(flash().attribute("subscriptionSuccessMessage", "You're on the HourBlue list."))
+                .andReturn();
+        homepage();
+
+        mockMvc.perform(get("/").flashAttrs(result.getFlashMap()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("You&#39;re on the HourBlue list.")))
+                .andExpect(content().string(not(containsString("visitor@example.test"))));
+        verify(subscriberRepository, never()).saveAndFlush(any());
+    }
+
+    @Test
     void subscriptionRequiresCsrf() throws Exception {
         mockMvc.perform(post("/subscribe").param("email", "visitor@example.test"))
                 .andExpect(status().isForbidden());
@@ -139,10 +159,12 @@ class SubscriptionControllerTests {
     }
 
     @Test
-    void malformedEmailIsHandledSafelyAndPreserved() throws Exception {
+    void malformedEmailIsHandledSafelyWithoutReflectingInput() throws Exception {
+        String submittedEmail = "not-an-email";
+
         MvcResult result = mockMvc.perform(post("/subscribe")
                         .with(csrf())
-                        .param("email", "not-an-email"))
+                        .param("email", submittedEmail))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/"))
                 .andExpect(flash().attribute("subscriptionErrorMessage", "Enter a valid email address."))
@@ -152,7 +174,26 @@ class SubscriptionControllerTests {
         mockMvc.perform(get("/").flashAttrs(result.getFlashMap()))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Enter a valid email address.")))
-                .andExpect(content().string(containsString("value=\"not-an-email\"")));
+                .andExpect(content().string(not(containsString(submittedEmail))));
+        verify(subscriberRepository, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void oversizedEmailIsHandledSafelyWithoutReflectingInput() throws Exception {
+        String submittedEmail = "a".repeat(309) + "@example.test";
+
+        MvcResult result = mockMvc.perform(post("/subscribe")
+                        .with(csrf())
+                        .param("email", submittedEmail))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/"))
+                .andExpect(flash().attributeExists("subscriptionErrorMessage"))
+                .andReturn();
+        homepage();
+
+        mockMvc.perform(get("/").flashAttrs(result.getFlashMap()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(not(containsString(submittedEmail))));
         verify(subscriberRepository, never()).saveAndFlush(any());
     }
 

@@ -58,6 +58,14 @@ class SearchEngineControllerTests {
     }
 
     @Test
+    void robotsTxtIgnoresHostHeader() throws Exception {
+        mockMvc.perform(get("/robots.txt").header("Host", "attacker.example"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Sitemap: https://hourblue.example/sitemap.xml")))
+                .andExpect(content().string(not(containsString("attacker.example"))));
+    }
+
+    @Test
     void sitemapXmlIncludesPublicUrlsOnly() throws Exception {
         CategoryRepository.SlugOnly category = () -> "design";
         PostRepository.SlugOnly post = () -> "published-post";
