@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <th:block th:replace="~{fragments/seo :: tags(${seoTitle}, ${seoDescription}, ${canonicalUrl}, ${ogType}, ${ogImageUrl}, ${ogImageAlt})}"></th:block>
+    <link rel="stylesheet" th:href="@{/css/site.css}" href="/css/site.css">
+</head>
+<body>
+    <main class="site-shell detail">
+        <header class="intro">
+            <p class="brand">HourBlue</p>
+            <h1>Unsubscribe</h1>
+            <p>Remove an email address from future HourBlue updates.</p>
+        </header>
+
+        <section class="subscribe" aria-labelledby="unsubscribe-title">
+            <h2 id="unsubscribe-title">Email removal</h2>
+            <p>If that email was subscribed, it will be removed from the HourBlue list.</p>
+            <p class="notice success" th:if="${unsubscribeSuccessMessage}" th:text="${unsubscribeSuccessMessage}"></p>
+            <p class="notice error" th:if="${unsubscribeErrorMessage}" th:text="${unsubscribeErrorMessage}"></p>
+            <form th:action="@{/unsubscribe}" method="post">
+                <label for="unsubscribeEmail">Email</label>
+                <div class="subscribe-form">
+                    <input id="unsubscribeEmail" name="email" type="email" maxlength="320" autocomplete="email" required>
+                    <button type="submit">Unsubscribe</button>
+                </div>
+            </form>
+        </section>
+
+        <p><a class="back-link" th:href="@{/}">Back to HourBlue</a></p>
+    </main>
+</body>
+</html>

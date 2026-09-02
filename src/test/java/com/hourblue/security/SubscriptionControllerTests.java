@@ -81,6 +81,7 @@ class SubscriptionControllerTests {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Join the HourBlue list")))
                 .andExpect(content().string(containsString("action=\"/subscribe\"")))
+                .andExpect(content().string(containsString("href=\"/unsubscribe\"")))
                 .andExpect(content().string(containsString("name=\"email\"")))
                 .andExpect(content().string(containsString("name=\"_csrf\"")));
     }
@@ -117,6 +118,80 @@ class SubscriptionControllerTests {
                 .andExpect(content().string(containsString("You&#39;re on the HourBlue list.")))
                 .andExpect(content().string(not(containsString("visitor@example.test"))));
         verify(subscriberRepository, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void unsubscribePageIsPublicAndContainsFormFields() throws Exception {
+        mockMvc.perform(get("/unsubscribe"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Email removal")))
+                .andExpect(content().string(containsString("action=\"/unsubscribe\"")))
+                .andExpect(content().string(containsString("name=\"email\"")))
+                .andExpect(content().string(containsString("name=\"_csrf\"")));
+    }
+
+    @Test
+    void unsubscribeRequiresCsrf() throws Exception {
+        mockMvc.perform(post("/unsubscribe").param("email", "visitor@example.test"))
+                .andExpect(status().isForbidden());
+
+        verify(subscriberRepository, never()).deleteByEmail(any());
+    }
+
+    @Test
+    void existingAndUnknownUnsubscribeUseSameSuccessUx() throws Exception {
+        when(subscriberRepository.deleteByEmail("existing@example.test")).thenReturn(1);
+        when(subscriberRepository.deleteByEmail("unknown@example.test")).thenReturn(0);
+
+        MvcResult existing = unsubscribe("existing@example.test");
+        MvcResult unknown = unsubscribe("unknown@example.test");
+
+        assertUnsubscribeSuccess(existing, "existing@example.test");
+        assertUnsubscribeSuccess(unknown, "unknown@example.test");
+    }
+
+    @Test
+    void unsubscribeNormalizesEmailLikeSubscribe() throws Exception {
+        unsubscribe("  Visitor@Example.TEST  ");
+
+        verify(subscriberRepository).deleteByEmail("visitor@example.test");
+    }
+
+    @Test
+    void malformedUnsubscribeEmailIsHandledSafelyWithoutReflectingInput() throws Exception {
+        String submittedEmail = "not-an-email";
+
+        MvcResult result = mockMvc.perform(post("/unsubscribe")
+                        .with(csrf())
+                        .param("email", submittedEmail))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/unsubscribe"))
+                .andExpect(flash().attribute("unsubscribeErrorMessage", "Enter a valid email address."))
+                .andReturn();
+
+        mockMvc.perform(get("/unsubscribe").flashAttrs(result.getFlashMap()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Enter a valid email address.")))
+                .andExpect(content().string(not(containsString(submittedEmail))));
+        verify(subscriberRepository, never()).deleteByEmail(any());
+    }
+
+    @Test
+    void oversizedUnsubscribeEmailIsHandledSafelyWithoutReflectingInput() throws Exception {
+        String submittedEmail = "a".repeat(309) + "@example.test";
+
+        MvcResult result = mockMvc.perform(post("/unsubscribe")
+                        .with(csrf())
+                        .param("email", submittedEmail))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/unsubscribe"))
+                .andExpect(flash().attributeExists("unsubscribeErrorMessage"))
+                .andReturn();
+
+        mockMvc.perform(get("/unsubscribe").flashAttrs(result.getFlashMap()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(not(containsString(submittedEmail))));
+        verify(subscriberRepository, never()).deleteByEmail(any());
     }
 
     @Test
@@ -225,5 +300,24 @@ class SubscriptionControllerTests {
                 org.mockito.Mockito.eq(PostStatus.PUBLISHED),
                 any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of()));
+    }
+
+    private MvcResult unsubscribe(String email) throws Exception {
+        return mockMvc.perform(post("/unsubscribe")
+                        .with(csrf())
+                        .param("email", email))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/unsubscribe"))
+                .andExpect(flash().attribute(
+                        "unsubscribeSuccessMessage",
+                        "If that email was subscribed, it has been removed."))
+                .andReturn();
+    }
+
+    private void assertUnsubscribeSuccess(MvcResult result, String email) throws Exception {
+        mockMvc.perform(get("/unsubscribe").flashAttrs(result.getFlashMap()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("If that email was subscribed, it has been removed.")))
+                .andExpect(content().string(not(containsString(email))));
     }
 }

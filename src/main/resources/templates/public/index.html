@@ -17,6 +17,7 @@
         <section class="subscribe" aria-labelledby="subscribe-title">
             <h2 id="subscribe-title">Join the HourBlue list</h2>
             <p>Get occasional notes when new visual finds are ready.</p>
+            <p><a th:href="@{/unsubscribe}">Unsubscribe from updates</a></p>
             <p class="notice success" th:if="${subscriptionSuccessMessage}" th:text="${subscriptionSuccessMessage}"></p>
             <p class="notice error" th:if="${subscriptionErrorMessage}" th:text="${subscriptionErrorMessage}"></p>
             <form th:action="@{/subscribe}" th:object="${subscriptionForm}" method="post">

@@ -73,6 +73,25 @@ class SubscriberRepositoryTests {
         assertFalse(subscriberRepository.existsByEmail("missing-" + email));
     }
 
+    @Test
+    void unsubscribeDeletesOnlyMatchingNormalizedEmail() {
+        String unique = unique();
+        String removed = "remove-" + unique + "@example.test";
+        String retained = "retain-" + unique + "@example.test";
+        SubscriptionService service = new SubscriptionService(subscriberRepository, transactionManager);
+        subscriberRepository.saveAndFlush(new Subscriber(removed));
+        subscriberRepository.saveAndFlush(new Subscriber(retained));
+
+        service.unsubscribe("  " + removed.toUpperCase(Locale.ROOT) + "  ");
+        service.unsubscribe("missing-" + retained);
+
+        assertFalse(subscriberRepository.existsByEmail(removed));
+        assertTrue(subscriberRepository.existsByEmail(retained));
+        assertEquals(1, subscriberRepository.findAll().stream()
+                .filter(subscriber -> subscriber.getEmail().contains(unique))
+                .count());
+    }
+
     private String unique() {
         return UUID.randomUUID().toString();
     }

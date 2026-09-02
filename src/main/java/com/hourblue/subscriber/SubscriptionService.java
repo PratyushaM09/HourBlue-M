@@ -40,6 +40,14 @@ public class SubscriptionService {
         }
     }
 
+    public void unsubscribe(String email) {
+        String normalizedEmail = normalize(email);
+        transactionTemplate.execute(status -> {
+            subscriberRepository.deleteByEmail(normalizedEmail);
+            return null;
+        });
+    }
+
     private String normalize(String email) {
         return Objects.requireNonNull(email).trim().toLowerCase(Locale.ROOT);
     }

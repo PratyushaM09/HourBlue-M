@@ -123,6 +123,23 @@ class SubscriptionServiceTests {
         assertDoesNotThrow(() -> subscriptionService.subscribe("duplicate@example.test"));
     }
 
+    @Test
+    void unsubscribeNormalizesAndDeletesInTransaction() {
+        Locale defaultLocale = Locale.getDefault();
+        Locale.setDefault(Locale.forLanguageTag("tr"));
+        try {
+            subscriptionService.unsubscribe("  I@EXAMPLE.TEST  ");
+        } finally {
+            Locale.setDefault(defaultLocale);
+        }
+
+        InOrder order = inOrder(subscriberRepository, transactionManager);
+        order.verify(transactionManager).getTransaction(any(TransactionDefinition.class));
+        order.verify(subscriberRepository).deleteByEmail("i@example.test");
+        order.verify(transactionManager).commit(transactionStatus);
+        verify(subscriberRepository, never()).saveAndFlush(any());
+    }
+
     private void assertSavedEmail(String email) {
         ArgumentCaptor<Subscriber> subscriber = ArgumentCaptor.forClass(Subscriber.class);
         verify(subscriberRepository).saveAndFlush(subscriber.capture());
