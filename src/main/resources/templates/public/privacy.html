@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <th:block th:replace="~{fragments/seo :: tags(${seoTitle}, ${seoDescription}, ${canonicalUrl}, ${ogType}, ${ogImageUrl}, ${ogImageAlt})}"></th:block>
+    <link rel="stylesheet" th:href="@{/css/site.css}" href="/css/site.css">
+</head>
+<body>
+    <main class="site-shell detail">
+        <header class="intro">
+            <p class="brand">HourBlue</p>
+            <h1>Privacy Policy</h1>
+            <p class="legal-updated">Last updated: September 3, 2026</p>
+        </header>
+
+        <article class="legal-content">
+            <section>
+                <h2>Information Collected</h2>
+                <p>HourBlue does not currently require visitors to create public accounts.</p>
+                <p>When a visitor voluntarily submits the subscription form, HourBlue stores the email address and the subscription creation timestamp.</p>
+                <p>Administrative access uses authentication and session cookies required for protected administration.</p>
+            </section>
+
+            <section>
+                <h2>Purpose</h2>
+                <p>Subscriber email is stored for HourBlue updates and communications related to HourBlue. HourBlue does not currently integrate with an external email-delivery provider.</p>
+            </section>
+
+            <section>
+                <h2>Unsubscribe And Deletion</h2>
+                <p>Visitors can request removal of a stored subscription email at <a th:href="@{/unsubscribe}">/unsubscribe</a>. When the submitted email matches a subscription entry, that entry is removed.</p>
+            </section>
+
+            <section>
+                <h2>Third Parties</h2>
+                <p>HourBlue uses Cloudinary to store and deliver website images. Subscriber email is not sent to Cloudinary.</p>
+                <p>The current application does not include analytics, advertising, payment, or external email-delivery integrations.</p>
+            </section>
+
+            <section>
+                <h2>Cookies And Sessions</h2>
+                <p>HourBlue uses cookies needed for security and administrative session functionality. These technical cookies are not advertising or behavioral tracking cookies.</p>
+            </section>
+
+            <section>
+                <h2>Server And Hosting Data</h2>
+                <p>Hosting or server infrastructure may process technical request information needed to operate and secure the site. HourBlue application code does not currently store public browsing profiles or browsing histories.</p>
+            </section>
+
+            <section>
+                <h2>Data Retention</h2>
+                <p>Subscriber email remains stored until removed through the unsubscribe mechanism or otherwise removed as part of site administration.</p>
+            </section>
+
+            <section>
+                <h2>Security</h2>
+                <p>HourBlue uses reasonable technical measures to protect stored information. No website or internet transmission can be guaranteed to be completely secure.</p>
+            </section>
+
+            <section>
+                <h2>Children</h2>
+                <p>HourBlue does not offer public accounts and does not intentionally seek personal information from children through the site.</p>
+            </section>
+
+            <section>
+                <h2>Changes</h2>
+                <p>This Privacy Policy may be updated as HourBlue changes.</p>
+            </section>
+        </article>
+    </main>
+    <footer th:replace="~{fragments/footer :: publicFooter}"></footer>
+</body>
+</html>

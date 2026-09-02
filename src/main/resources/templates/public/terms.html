@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <th:block th:replace="~{fragments/seo :: tags(${seoTitle}, ${seoDescription}, ${canonicalUrl}, ${ogType}, ${ogImageUrl}, ${ogImageAlt})}"></th:block>
+    <link rel="stylesheet" th:href="@{/css/site.css}" href="/css/site.css">
+</head>
+<body>
+    <main class="site-shell detail">
+        <header class="intro">
+            <p class="brand">HourBlue</p>
+            <h1>Terms of Service</h1>
+            <p class="legal-updated">Last updated: September 3, 2026</p>
+        </header>
+
+        <article class="legal-content">
+            <section>
+                <h2>Acceptance</h2>
+                <p>By using HourBlue, you agree to use the site subject to these Terms.</p>
+            </section>
+
+            <section>
+                <h2>Service Description</h2>
+                <p>HourBlue provides curated visual-discovery content. The site may change over time and availability is not guaranteed.</p>
+            </section>
+
+            <section>
+                <h2>Content</h2>
+                <p>HourBlue displays curated imagery, text, and links to external source pages. HourBlue site design, text, and code may be protected by applicable rights.</p>
+                <p>Third-party or source-linked content may remain subject to the rights of its respective rights holder.</p>
+            </section>
+
+            <section>
+                <h2>Acceptable Use</h2>
+                <p>You must not attempt unauthorized access, interfere with site operation, abuse forms or endpoints, scrape or attack the service in a harmful manner, submit malicious data, or use HourBlue unlawfully.</p>
+            </section>
+
+            <section>
+                <h2>External Links</h2>
+                <p>HourBlue may link to external websites. HourBlue does not control those websites, and their own terms and privacy practices apply.</p>
+            </section>
+
+            <section>
+                <h2>Subscription</h2>
+                <p>Visitors may voluntarily submit an email for HourBlue updates. They may remove it using <a th:href="@{/unsubscribe}">/unsubscribe</a>. HourBlue does not promise a particular update frequency or guaranteed email delivery.</p>
+            </section>
+
+            <section>
+                <h2>Availability And Changes</h2>
+                <p>HourBlue may change, suspend, remove, archive, or update content and features. No uptime guarantee is provided.</p>
+            </section>
+
+            <section>
+                <h2>Disclaimer</h2>
+                <p>HourBlue content is provided for informational and inspirational purposes and should not be treated as professional advice.</p>
+            </section>
+
+            <section>
+                <h2>Limitation</h2>
+                <p>HourBlue is provided on an as-available basis. Liability is limited where permitted by applicable law.</p>
+            </section>
+
+            <section>
+                <h2>Access</h2>
+                <p>HourBlue may restrict access for abusive or harmful use.</p>
+            </section>
+
+            <section>
+                <h2>Changes To Terms</h2>
+                <p>These Terms may be updated as HourBlue changes.</p>
+            </section>
+        </article>
+    </main>
+    <footer th:replace="~{fragments/footer :: publicFooter}"></footer>
+</body>
+</html>

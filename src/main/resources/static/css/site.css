@@ -395,6 +395,43 @@ section[aria-labelledby="gallery-title"] {
     max-width: 42rem;
 }
 
+.legal-updated {
+    color: var(--muted);
+    font: 0.9rem/1.5 var(--font-sans);
+}
+
+.legal-content {
+    max-width: var(--measure);
+}
+
+.legal-content section {
+    margin-bottom: 2rem;
+}
+
+.legal-content p {
+    color: var(--text-soft);
+    font: 1rem/1.7 var(--font-serif);
+}
+
+.public-footer {
+    width: min(var(--wide), calc(100% - var(--gutter) * 2));
+    margin: 0 auto;
+    padding: 0 0 2rem;
+    color: var(--muted);
+    font: 0.82rem/1.5 var(--font-sans);
+}
+
+.public-footer nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1rem;
+    margin-bottom: 0.45rem;
+}
+
+.public-footer p {
+    margin: 0;
+}
+
 @media (max-width: 860px) {
     h1,
     .post-detail h1 {

@@ -37,6 +37,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -46,6 +47,7 @@ import org.springframework.transaction.TransactionStatus;
 
 @WebMvcTest({PublicPostController.class, SubscriptionController.class})
 @Import({SecurityConfiguration.class, SiteUrlBuilder.class, SubscriptionService.class})
+@TestPropertySource(properties = "hourblue.site-base-url=https://hourblue.example")
 class SubscriptionControllerTests {
 
     @Autowired
@@ -81,6 +83,9 @@ class SubscriptionControllerTests {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Join the HourBlue list")))
                 .andExpect(content().string(containsString("action=\"/subscribe\"")))
+                .andExpect(content().string(containsString("<footer")))
+                .andExpect(content().string(containsString("href=\"/privacy\"")))
+                .andExpect(content().string(containsString("href=\"/terms\"")))
                 .andExpect(content().string(containsString("href=\"/unsubscribe\"")))
                 .andExpect(content().string(containsString("name=\"email\"")))
                 .andExpect(content().string(containsString("name=\"_csrf\"")));
@@ -128,6 +133,44 @@ class SubscriptionControllerTests {
                 .andExpect(content().string(containsString("action=\"/unsubscribe\"")))
                 .andExpect(content().string(containsString("name=\"email\"")))
                 .andExpect(content().string(containsString("name=\"_csrf\"")));
+    }
+
+    @Test
+    void privacyAndTermsPagesArePublicAndRenderTitles() throws Exception {
+        mockMvc.perform(get("/privacy"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("<title>Privacy Policy - HourBlue</title>")))
+                .andExpect(content().string(containsString("<h1>Privacy Policy</h1>")));
+
+        mockMvc.perform(get("/terms"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("<title>Terms of Service - HourBlue</title>")))
+                .andExpect(content().string(containsString("<h1>Terms of Service</h1>")));
+    }
+
+    @Test
+    void legalPagesLinkUnsubscribeAndUseConfiguredCanonicalUrl() throws Exception {
+        mockMvc.perform(get("/privacy").header("Host", "attacker.example"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("href=\"/unsubscribe\"")))
+                .andExpect(content().string(containsString("rel=\"canonical\" href=\"https://hourblue.example/privacy\"")))
+                .andExpect(content().string(not(containsString("attacker.example"))));
+
+        mockMvc.perform(get("/terms").header("Host", "attacker.example"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("href=\"/unsubscribe\"")))
+                .andExpect(content().string(containsString("rel=\"canonical\" href=\"https://hourblue.example/terms\"")))
+                .andExpect(content().string(not(containsString("attacker.example"))));
+    }
+
+    @Test
+    void legalPagesUsePublicFooter() throws Exception {
+        mockMvc.perform(get("/privacy"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("<footer")))
+                .andExpect(content().string(containsString("href=\"/privacy\"")))
+                .andExpect(content().string(containsString("href=\"/terms\"")))
+                .andExpect(content().string(containsString("href=\"/unsubscribe\"")));
     }
 
     @Test

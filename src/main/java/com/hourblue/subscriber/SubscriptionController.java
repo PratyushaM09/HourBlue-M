@@ -56,8 +56,32 @@ public class SubscriptionController {
 
     @GetMapping("/unsubscribe")
     String unsubscribe(Model model) {
-        addSeo(model);
+        addSeo(
+                model,
+                "Unsubscribe - HourBlue",
+                "Remove an email address from the HourBlue subscription list.",
+                "/unsubscribe");
         return "public/unsubscribe";
+    }
+
+    @GetMapping("/privacy")
+    String privacy(Model model) {
+        addSeo(
+                model,
+                "Privacy Policy - HourBlue",
+                "Read how HourBlue handles visitor, subscriber, and administrative information.",
+                "/privacy");
+        return "public/privacy";
+    }
+
+    @GetMapping("/terms")
+    String terms(Model model) {
+        addSeo(
+                model,
+                "Terms of Service - HourBlue",
+                "Read the terms for using the HourBlue visual-discovery website.",
+                "/terms");
+        return "public/terms";
     }
 
     @PostMapping("/unsubscribe")
@@ -90,10 +114,10 @@ public class SubscriptionController {
         }
     }
 
-    private void addSeo(Model model) {
-        model.addAttribute("seoTitle", "Unsubscribe - HourBlue");
-        model.addAttribute("seoDescription", "Remove an email address from the HourBlue subscription list.");
-        model.addAttribute("canonicalUrl", siteUrlBuilder.canonical("/unsubscribe"));
+    private void addSeo(Model model, String title, String description, String path) {
+        model.addAttribute("seoTitle", title);
+        model.addAttribute("seoDescription", description);
+        model.addAttribute("canonicalUrl", siteUrlBuilder.canonical(path));
         model.addAttribute("ogType", "website");
         model.addAttribute("ogImageUrl", null);
         model.addAttribute("ogImageAlt", null);

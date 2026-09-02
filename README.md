@@ -10,7 +10,8 @@ Milestones 1 through 10 are complete. The MVP is ready for deployment on a gener
 
 - Public homepage, category browsing, mood browsing, and post detail pages
 - Today's Moment homepage highlight with newest-published fallback
-- Public email subscription form with normalized unique subscriber emails
+- Public email subscription and unsubscribe forms with normalized unique subscriber emails
+- Public Privacy Policy and Terms of Service pages
 - Admin-only category, post, image replacement, and Today's Moment management
 - Custom admin login with server-side sessions, BCrypt passwords, CSRF protection, and POST logout
 - Page-specific SEO metadata, canonical URLs, Open Graph metadata, `robots.txt`, `sitemap.xml`, and post detail JSON-LD
@@ -112,6 +113,12 @@ Initial admin bootstrap runs only when the admin table is empty and both bootstr
 - `GET /robots.txt` allows public crawling, disallows `/admin/`, and links the sitemap.
 - `GET /sitemap.xml` includes the homepage, category pages, mood pages, and published post detail pages only.
 - Canonical URLs are generated from configured `SITE_BASE_URL`, not request host headers.
+
+## Launch-Readiness Routes
+
+- `GET /privacy`
+- `GET /terms`
+- `GET /unsubscribe`
 
 ## Production Build And Run
 
